@@ -1,0 +1,121 @@
+/* Tag Styles */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+i {  color:#72767d }
+
+/** Material Theme Styles **/
+
+
+@mixin material-overrides {
+    .mat-input-element { caret-color: auto;  }
+    .mat-badge-content {
+        z-index: 1;
+    }
+    .mat-button-base:hover {
+        filter: brightness(85%);
+    }
+    .mat-dialog-container {
+        padding: 0;
+    }
+}
+
+.gbraidfinder-light-theme {
+    @import './gbraidfinder-light-theme.scss';
+    @include material-overrides;
+    background: #F5F5F5;
+    .bg-0 { background: #e0e0e0 }
+    .bg-1 { background: #f5f5f5 }
+    .bg-2 { background: #fafafa }
+    .bg-3 { background: #ffffff }
+}
+
+.gbraidfinder-dark-theme {
+    @import './gbraidfinder-dark-theme.scss';
+    @include material-overrides;
+    background: #212121;
+    color: #e0e0e0;
+    .bg-0 { background: #000000 }
+    .bg-1 { background: #212121 }
+    .bg-2 { background: #303030 }
+    .bg-3 { background: #424242 }
+}
+
+/** Additional Helper Classes **/
+
+.w-100 {
+    width: 100%;
+}
+
+.h-100 {
+    height: 100%;
+}
+
+.h-50 {
+    height: 50%;
+}
+
+.vw-100 {
+    width: 100vw;
+}
+
+.vh-100 {
+    height: 100vh;
+}
+
+.hover-highlight:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+/** Scrollbar Styles **/
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    border-color: transparent;
+    background-color: rgba(0,0,0, 0.1);
+    border: 2px solid transparent
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0, 0.5);
+    border-radius: 8px;
+}
+
+
+// Dragula css
+.gu-mirror {
+    position: fixed !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+    opacity: 0.8;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+    filter: alpha(opacity=80);
+    pointer-events: none;
+}
+/* high-performance display:none; helper */
+.gu-hide {
+    left: -9999px !important;
+}
+/* added to mirrorContainer (default = body) while dragging */
+.gu-unselectable {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    z-index: 100;
+    *:hover {
+        cursor: grabbing !important;
+    }
+}
+[handle]:hover {
+    cursor: grab;
+}
+/* added to the source element while its mirror is dragged */
+.gu-transit {
+    opacity: 0.2;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+    filter: alpha(opacity=20);
+}

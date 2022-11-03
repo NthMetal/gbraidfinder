@@ -1,0 +1,364 @@
+<div class="row flex-column flex-nowrap h-100">
+  <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
+    <div class="row">
+      <div class="col-auto">
+        <button mat-mini-fab color="primary" (click)="openDialog(raidDialog)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+      <div class="col"></div>
+      <div class="col-auto d-flex align-items-center">
+        <div *ngIf="socketioService.connected" matTooltip="online" style="padding: 4px;
+        margin: 8px;
+        border-radius: 100%;
+        background: rgb(7 227 54 / 80%);
+        box-shadow: rgb(7 227 65 / 50%) 0px 0px 10px 2px inset, rgb(21 227 7 / 80%) 0px 0px 10px 2px;"></div>
+        <div *ngIf="!socketioService.connected" matTooltip="offline" style="padding: 4px;
+        margin: 8px;
+        border-radius: 100%;
+        background: rgb(227 7 7 / 80%);
+        box-shadow: rgb(227 7 7 / 50%) 0px 0px 10px 2px inset, rgb(227 7 7 / 80%) 0px 0px 10px 2px;"></div>
+      </div>
+      <!-- <div class="col-auto">
+        <button mat-mini-fab color="primary">
+          <mat-icon>insights</mat-icon>
+        </button>
+      </div> -->
+      <div class="col-auto">
+        <button mat-mini-fab color="primary" (click)="openDialog(settingsDialog)">
+          <mat-icon>settings</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="col mt-5 pt-2">
+    <div class="row align-items-center flex-nowrap" dragula="DRAGABLE_COLUMNS" [(dragulaModel)]="subscribedRaids">
+        <div class="col-2 bg-2 m-3" style="overflow: auto; height: calc(100vh - 5.5rem); min-width: 20rem; border-radius: 0.5rem; box-shadow: 1px 2px 8px #101010;" *ngFor="let raid_data of subscribedRaids">
+            <div class="py-2 row align-items-center dragula-handle" handle>
+              <div class="col-auto dragula-handle" handle>
+                <button mat-icon-button color="primary" (click)="unsubscribeRaid(raid_data.quest_id)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="col dragula-handle" handle>{{raid_data.quest_name_en}}</div>
+              <div class="col-auto dragula-handle" handle>
+                <button mat-icon-button color="primary" [matMenuTriggerFor]="columnMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #columnMenu="matMenu">
+                  <button mat-menu-item (click)="moveQuestLeft(raid_data)"><mat-icon>keyboard_arrow_left</mat-icon>Move Left</button>
+                  <button mat-menu-item (click)="moveQuestRight(raid_data)"><mat-icon>keyboard_arrow_right</mat-icon>Move Right</button>
+                  <button mat-menu-item (click)="clearAllRaidsInQuest(raid_data)"><mat-icon>clear_all</mat-icon>Clear</button>
+                  <button mat-menu-item (click)="toggleQuestNotifications(raid_data)">
+                    <mat-icon *ngIf="!raid_data.notifications">notifications_active</mat-icon>
+                    <mat-icon *ngIf="raid_data.notifications">notifications_off</mat-icon>
+                    {{raid_data.notifications ? 'Disable' : 'Enable'}} Notifications
+                  </button>
+                  <button mat-menu-item (click)="toggleQuestSound(raid_data)">
+                    <mat-icon *ngIf="!raid_data.sound">music_note</mat-icon>
+                    <mat-icon *ngIf="raid_data.sound">music_off</mat-icon>
+                    {{raid_data.sound ? 'Disable' : 'Enable'}} Sound
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }"
+                      *ngFor="let raid of raids[raid_data.quest_id]" (click)="selectRaid(raid)">
+                <!-- { 
+                  "twitterUser": { 
+                    "name": "FREQ",
+                    "imgUrl": "a",   1046707735033565184/g_oRfx2P_normal.jpg
+                    "username": "Sm0325Freq",
+                    "verified": false
+                  },
+                  "locale": "JP",
+                  "message": "",
+                  "battleKey": "CAC6DF94",
+                  "quest_id": "301061" 
+                } -->
+                    <!-- <mat-icon *ngIf="raid.twitterUser.verified">verified</mat-icon> -->
+                <!-- <div style="position: absolute; background: rgba(85, 15, 15, 0.411); height: 100%; width: 100%; top: 0; left: 0;"
+                    [ngStyle]="{ 'width': raid.update?.hp ? raid.update?.hp + '%' : '0%' }"></div> -->
+                <div class="row align-items-center g-2">
+                  <!-- <div class="col-auto" [matTooltip]="raid.twitterUser.name">
+                    <img height="25px" [src]="raid.twitterUser.imgUrl === 'a' ? 'https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png' : 'https://pbs.twimg.com/profile_images/' + raid.twitterUser.imgUrl "/>
+                  </div> -->
+                  <div class="col">
+                    <mat-text style="font-size: 1.15rem">{{raid.battleKey}}</mat-text>
+                  </div>
+                  <div class="col-auto">
+                    <mat-text style="font-size: 0.8rem">{{raid.created_at | timeago}}</mat-text>
+                  </div>
+                  <div class="col-auto">
+                    <mat-icon>{{raid.update && !settings.copyOnly ? 'exit_to_app' : 'content_copy'}}</mat-icon>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    {{raid.message}}
+                  </div>
+                </div>
+                <div class="row mt-2 align-items-end" *ngIf="raid.update">
+                  <div class="col">
+                    <mat-progress-bar mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
+                  </div>
+                </div>
+                <!-- <div class="col-auto" style="line-height: 0.1rem;"> {{raid.update?.hp}}% </div> -->
+                <div class="row mt-2 flex-nowrap gx-2" *ngIf="raid.update">
+                  <div class="col d-flex align-items-center">{{raid.update?.hp}}% </div>
+                  <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
+                  <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
+                  <div class="col-auto d-flex align-items-center">
+                    <img height="20px" [src]="'assets/icons/' + raid.update.questHostClass + '.png'"/>
+                  </div>
+                </div>
+            </mat-card>
+        </div>
+    </div>
+
+  </div>
+</div>
+
+<ng-template #raidDialog>
+  <mat-dialog height="large">
+    <div title>Add Raid</div>
+    <!-- <div class="row my-2">
+      <div class="col">
+        <mat-button-toggle-group appearance="legacy" multiple name="element" class="w-100">
+          <mat-button-toggle class="w-100" *ngFor="let element of elements" [value]="element">
+            <img [src]="'assets/icons/' + element + '.png'"/>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+    </div> -->
+    <div class="row mt-3">
+      <div class="col">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Search Raids</mat-label>
+          <input matInput placeholder="ex: Shiva (Impossible) or シヴァＨＬ" [(ngModel)]="raidSearch" (ngModelChange)="raidSearchSubject.next($event)">
+          <mat-icon class="mr-2" matPrefix>search&nbsp;</mat-icon>
+        </mat-form-field>
+        <!-- <mat-form-field class="w-100" appearance="outline">
+          <mat-chip-list #chipList>
+            <mat-chip style="display: none;">ayy lmao</mat-chip>
+            <img class="raid-card mx-1 mb-1" *ngFor="let subbedRaid of subscribedRaids" (click)="remove(subbedRaid)" height="45px" [src]="'assets/thumb/' + subbedRaid.quest_id + '.png'"/>
+            <input
+              placeholder="Search Raids"
+              #searchInput
+              [formControl]="subbedQuestsCtrl"
+              [matAutocomplete]="auto"
+              [matChipInputFor]="chipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              matChipInputAddOnBlur
+              (matChipInputTokenEnd)="add($event)">
+          </mat-chip-list>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
+            <mat-option *ngFor="let raid of filteredQuests | async" [value]="raid">
+              <div class="d-flex align-items-center">
+                <img height="45px" [src]="'assets/thumb/' + raid.quest_id + '.png'"/>&nbsp;{{raid.quest_name_en}}
+              </div>
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field> -->
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="row my-2">
+      <div class="col">
+        <mat-button-toggle-group appearance="legacy" name="type" #typeGroup="matButtonToggleGroup" class="w-100" value="2">
+          <mat-button-toggle class="w-100" value="1">Standard</mat-button-toggle>
+          <mat-button-toggle class="w-100" value="2">Impossible</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+    </div>
+    <!-- <div class="row my-2">
+      <mat-card class="col-2 h-100" *ngFor="let raid of raid_metadata" [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover'}">
+        {{raid.quest_name_en}}
+      </mat-card>
+    </div> --> 
+    <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '1'">
+      <div class="col">
+        <div class="row my-4 w-100" *ngFor="let difficulty of standardDifficulties">
+          <div class="raid-card col-auto my-1 mx-2" [ngClass]="{'raid-selected': raid.selected}" *ngFor="let raid of raidSearchFiltered.standard[difficulty]"
+            [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
+            (click)="toggleRaid(raid.quest_id)">
+            <!-- <img [src]="'assets/thumb/' + raid.quest_id + '.png'" (click)="toggleRaid(raid.quest_id)"/> -->
+            <!-- {{raid.quest_name_en}} -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '2'">
+      <div class="col">
+        <div class="row my-4 w-100" *ngFor="let difficulty of impossibleDifficulties">
+          <div class="raid-card col-auto my-1 mx-2" [ngClass]="{'raid-selected': raid.selected}" *ngFor="let raid of raidSearchFiltered.impossible[difficulty]"
+            [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
+            (click)="toggleRaid(raid.quest_id)">
+            <!-- <img [src]="'assets/thumb/' + raid.quest_id + '.png'" (click)="toggleRaid(raid.quest_id)"/> -->
+            <!-- {{raid.quest_name_en}} -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog>
+</ng-template>
+
+
+<ng-template #settingsDialog>
+  <mat-dialog>
+    <div title>Settings</div>
+    <form #settingsForm="ngForm" novalidate>
+      <mat-tab-group>
+
+        <mat-tab>
+          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">casino</mat-icon> Misc </ng-template>
+          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
+            <div class="row mt-2 flex-row-vertical">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Raid Settings</h4>
+                <mat-radio-group class="row" [(ngModel)]="settings.copyOnly" name="copyOnly">
+                  <div class="col mt-2 d-flex align-items-center">
+                    <mat-radio-button class="mr-2" [value]="false">
+                      Take me to the summon page&nbsp;&nbsp;
+                    </mat-radio-button>
+                    <mat-icon>exit_to_app</mat-icon>
+                  </div>
+                  <div class="col mt-2 d-flex align-items-center">
+                    <mat-radio-button class="mr-2" [value]="true">
+                      Just copy the battle key&nbsp;&nbsp;
+                    </mat-radio-button>
+                    <mat-icon>content_copy</mat-icon>
+                  </div>
+                </mat-radio-group>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Duplicate Tweets</h4>
+                <mat-radio-group class="row" [(ngModel)]="settings.removeDuplicates" name="removeDuplicates" disabled>
+                  <mat-radio-button class="col mt-2" [value]="true">Filter</mat-radio-button>
+                  <mat-radio-button class="col mt-2" [value]="false">Show</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Filter by HP</h4>
+                <div class="row">
+                  <mat-form-field class="col" appearance="fill">
+                    <mat-label>Min HP</mat-label>
+                    <input matInput type="number" min="0" max="99" [(ngModel)]="settings.minHP" name="minHP">
+                    <mat-icon matSuffix>percent</mat-icon>
+                  </mat-form-field>
+                  <mat-form-field class="col" appearance="fill">
+                    <mat-label>Max HP</mat-label>
+                    <input matInput type="number" min="1" max="100" [(ngModel)]="settings.maxHP" name="maxHP">
+                    <mat-icon matSuffix>percent</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Remove Raids after</h4>
+                <mat-form-field appearance="fill">
+                  <input matInput type="number" [(ngModel)]="settings.removeRaidsAfterSeconds" name="removeRaidsAfterSeconds">
+                  <div matSuffix>Seconds</div>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Filter by Max Players.</h4>
+                <mat-form-field appearance="fill">
+                  <mat-label>Maximum Players</mat-label>
+                  <input matInput type="number" min="0" [(ngModel)]="settings.maxPlayers" name="maxPlayers">
+                </mat-form-field>
+              </div>
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Filter by Min players.</h4>
+                <mat-form-field appearance="fill">
+                  <mat-label>Minimum Players</mat-label>
+                  <input matInput type="number" min="0" [(ngModel)]="settings.minPlayers" name="minPlayers">
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="row flex-row-vertical">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Theme</h4>
+                <mat-radio-group class="row" [(ngModel)]="settings.theme" name="theme" disabled>
+                  <mat-radio-button class="col mt-2" value="dark">Dark</mat-radio-button>
+                  <mat-radio-button class="col mt-2" value="light">Light</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+
+          </div>
+          <!-- Theme
+          Language
+          column width
+          copy settings, copy paste only, go to raid when available
+          disable enhanced info
+          filter duplicate tweets
+          filter by hp
+          filter by people in raid
+        -->
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label> <mat-icon>notifications</mat-icon> Notification </ng-template>
+          <!-- Disable all desktop notifications
+          Disable all sound notifications
+          Sound volume?
+          hp threshold -->
+          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
+            <div class="row mt-2">
+              <div class="col">
+                Todo: i'm lazy
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        
+        <mat-tab>
+          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">help</mat-icon> Help </ng-template>
+          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
+            <div class="row mt-2">
+              <div class="col">
+                Choose the raid you want by clicking the button on the top left
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col">
+                Extra raid info such as hp, players, etc. may not be available all the time
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col">
+                Site may go down unexpectedly.
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        
+        <mat-tab>
+          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">info</mat-icon> About </ng-template>
+          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
+            <div class="row">
+              <div class="col">
+                For any questions or concerns feel free to ping me on discord: NthMetal#5000
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                UI Version: 0.0.2
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </form>
+  </mat-dialog>
+</ng-template>

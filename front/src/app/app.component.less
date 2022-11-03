@@ -1,0 +1,30 @@
+.raid-card {
+    box-shadow: 1px 2px 8px #212121;
+}
+
+.raid-card:hover {
+    filter: brightness(90%);
+    cursor: pointer;
+}
+
+.raid-card-selected {
+    filter: brightness(90%);
+}
+
+.raid-selected::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    height: calc(100% + 5px);
+    width: calc(100% + 5px);
+    border: 2px dotted #00ffbd;
+    border-radius: 0.3rem;
+}
+
+.mat-icon-80 {
+    font-size: 0.8rem;
+    height: 0.8rem;
+    width: 0.8rem;
+    color: hsl(0, 0%, 26%);
+}

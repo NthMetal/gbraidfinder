@@ -1,0 +1,44 @@
+{{- range .Values.gbrInstances }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbr-{{ .id }}
+  labels:
+    app: gbr-{{ .id }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gbr-{{ .id }}
+  template:
+    metadata:
+      labels:
+        app: gbr-{{ .id }}
+    spec:
+      containers:
+      - name: gbr-{{ .id }}
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.6
+        ports:
+        - name: "p9222"
+          containerPort: 9222
+        - name: "p3001"
+          containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gbr-service-{{ .id }}
+spec:
+  selector:
+    app: gbr-{{ .id }}
+  ports:
+    - name: "p9222"
+      protocol: TCP
+      port: 9222
+      targetPort: 9222
+    - name: "p3000"
+      protocol: TCP
+      port: 3001
+      targetPort: 3001
+{{- end }}

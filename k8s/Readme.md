@@ -1,0 +1,27 @@
+
+# Helm Chart for gbraidfinder
+
+## Helpful commands
+
+kubectl delete all --all -n gbr-context && helm uninstall --namespace=gbr-context gbr
+
+helm install --namespace=gbr-context --replace gbr .
+
+aws ecr get-login-password --region us-east-2 | do docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
+aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
+docker tag d2018a50b26a 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
+docker push 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
+
+  // curl -k -H "Content-Type: application/json" -X POST http://afe2adbec799b4028a87105169e19b8c-535904035.us-east-2.elb.amazonaws.com:3001/3001/account/status
+  // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/status
+  // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/account/status
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3001/initializeBrowser
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeLogin
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeManually
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/getRaidInfo -d "{\"battleKey\":\"EEFCE54B\"}"
+
+  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-0:3001/1/account/status
+  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-5:3001/1/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
+  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-1:3001/1/getRaidInfo -d "{\"battleKey\":\"458D5B0B\"}"

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raidfinder
+  labels:
+    app: raidfinder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: raidfinder
+  template:
+    metadata:
+      labels:
+        app: raidfinder
+    spec:
+      containers:
+      - name: raidfinder
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:0.0.10
+        ports:
+        - name: "p3000"
+          containerPort: 3000
+        volumeMounts:
+          - mountPath: /usr/src/app/secrets
+            name: accounts-secret
+            readOnly: true
+      volumes:
+        - name: accounts-secret
+          secret:
+            secretName: accounts-secret
+            items:
+            - key: accounts_json
+              path: accounts.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: raidfinder-service
+  labels:
+    app: raidfinder
+spec:
+  type: LoadBalancer
+  ports:
+  - name: "p80"
+    port: 80
+    targetPort: 3000
+  - name: "p443"
+    port: 443
+    targetPort: 3000
+  selector:
+    app: raidfinder
+
+# kubectl expose --namespace=gbr-context deployment raidfinder --type=LoadBalancer --port=3000 --target-port=3000 --name=raidfinder-service2

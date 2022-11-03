@@ -1,0 +1,21 @@
+<div [ngClass]="['flex-nowrap flex-column h-100 m-0 row w-100', 'width-'+width]">
+    <div class="col-auto bg-1 py-1">
+        <div class="row">
+            <div class="col-auto">
+                <button mat-icon-button style="width: 0; height: 0" (click)="closeDialog()"></button>
+                <button mat-icon-button color="primary" (click)="closeDialog()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+            <div class="col d-flex align-items-center">
+                <mat-text>
+                    <ng-content select="[title]"></ng-content>
+                </mat-text>
+            </div>
+        </div>
+    </div>
+    <mat-divider></mat-divider>
+    <div [ngClass]="['col py-2']">
+        <ng-content></ng-content>
+    </div>
+</div>
