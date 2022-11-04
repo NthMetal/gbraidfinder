@@ -236,6 +236,15 @@
             </div>
             <div class="row">
               <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">Tab Settings</h4>
+                <mat-radio-group class="row" [(ngModel)]="settings.openInTab" name="openInTab" [disabled]="settings.copyOnly">
+                  <mat-radio-button class="col mt-2" value="_blank">Always open in a new tab</mat-radio-button>
+                  <mat-radio-button class="col mt-2" value="gbfTAB" [matTooltip]="'Warning: using this option is sus because it sends the current website url to gbf'">Open in an existing tab</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Duplicate Tweets</h4>
                 <mat-radio-group class="row" [(ngModel)]="settings.removeDuplicates" name="removeDuplicates" disabled>
                   <mat-radio-button class="col mt-2" [value]="true">Filter</mat-radio-button>
@@ -353,7 +362,7 @@
             </div>
             <div class="row">
               <div class="col">
-                UI Version: 0.0.2
+                Code: https://github.com/NthMetal/gbraidfinder
               </div>
             </div>
           </div>

@@ -43,6 +43,7 @@ export class AppComponent implements OnInit, OnDestroy {
     maxHP: 100,
     minPlayers: 0,
     maxPlayers: 0,
+    openInTab: '_blank',
     theme: 'dark'
   }
 
@@ -73,17 +74,13 @@ export class AppComponent implements OnInit, OnDestroy {
   impossibleDifficulties: string[] = [];
 
   async ngOnInit(): Promise<void> {
-    // this.raid_metadata = await new Promise(resolve => {
-    //   this.metadataService.getRaidMetadata().subscribe(metadata => {
-    //     resolve(metadata);
-    //   });
-    // });
+
     this.settings = JSON.parse(localStorage.getItem('settings') || JSON.stringify(this.settings));
 
     this.filteredQuests = this.subbedQuestsCtrl.valueChanges.pipe(
       startWith(null),
       map(raid => raid ? this._filter(raid) : this.raid_metadata.slice()));
-
+    
     this.raidSearchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged())
@@ -109,6 +106,13 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.raid_metadata = await new Promise(resolve => {
+      this.metadataService.getRaidMetadata().subscribe(metadata => {
+        resolve(metadata);
+      });
+    });
+    console.log(this.raid_metadata)
+
     // this.joinLevels = [...new Set(this.raid_metadata.map(raid => raid.level))].sort((a, b) => a - b)
     // this.toggleRaid('305171');
     this.groupedRaids = this.raid_metadata.reduce((acc, curr) => {
@@ -123,12 +127,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.impossibleDifficulties = Object.keys(this.groupedRaids.impossible);
     this.impossibleDifficulties = Object.keys(this.groupedRaids.impossible);
 
-
-    this.raid_metadata = await new Promise(resolve => {
-      this.metadataService.getRaidMetadata().subscribe(metadata => {
-        resolve(metadata);
-      });
-    });
     this.socketioService.subscribedRaids.subscribe(subbed => {
       const subbedRaids: any[] = [];
       subbed.forEach(subbedRaid => {
@@ -211,9 +209,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public selectRaid(raid: any) {
     raid.selected = true;
     if (raid.update && !this.settings.copyOnly) {
-      window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, "_blank");
+      const tab = this.settings.openInTab || '_blank';
+      window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
     } else {
-      console.log('copying text');
       const result = this.copyTextToClipboard(raid.battleKey);
       result ? this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 }) : 
       this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
