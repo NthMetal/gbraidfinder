@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: raidfinder
-        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:0.0.10
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:0.1.2
         ports:
         - name: "p3000"
           containerPort: 3000

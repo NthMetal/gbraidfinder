@@ -26,17 +26,20 @@ export class GbrService implements OnModuleInit {
             this.gbrInstances.push(gbr);
             console.log(`Created gbr instance number ${index}`);
             try {
-                // A shitty way of initializing by always setting the accounts
-                // TODO: check if account is already set
                 const initStatus: any = await gbr.getInitStatus();
-                await gbr.accountSet(account.username, account.password, account.rank);
+                await gbr.accountSet(
+                    initStatus.data?.account?.username || account.username,
+                    initStatus.data?.account?.password || account.password,
+                    initStatus.data?.account?.rank || account.rank);
+                console.log(initStatus.data, account);
+                gbr.handleUpdates();
                 if (initStatus.data.initializedBrowser && initStatus.data.initializedLogin) {
-                    console.log('gbr already initialized', account);
+                    console.log('gbr already initialized');
                     continue;
                 }
                 const browserInitStatus = await gbr.initializeBrowser();
                 const manualInitStatus = await gbr.initializeManually();
-                console.log('set account for:', account.username, browserInitStatus, manualInitStatus);
+                console.log('set account for:', initStatus.data?.account?.username, account.username, browserInitStatus, manualInitStatus);
             } catch(error) {
                 console.log('error setting account:');
                 console.log(error);

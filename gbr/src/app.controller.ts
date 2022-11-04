@@ -110,6 +110,7 @@ export class AppController {
       const result = await this.appService.getRaidInfo(battleKey);
       return result;
     } catch(error) {
+      console.log(error);
       return { status: 'error' }
     }
   }

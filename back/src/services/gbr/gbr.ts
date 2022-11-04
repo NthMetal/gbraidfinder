@@ -71,7 +71,6 @@ export class GBR {
         this.password = password;
         this.rank = rank;
         const accountSetResult = this.post('/1/account/set', { username, password, rank });
-        this.handleUpdates();
         return accountSetResult;
     }
 
@@ -91,16 +90,16 @@ export class GBR {
         return this.post('/1/getRaidInfo', { battleKey });
     }
 
-    private handleUpdates() {
+    public handleUpdates() {
         this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
-            // console.log('getting raid info for', battleKey);
+            console.log('getting raid info for', battleKey);
             const updateResult: any = await this.getRaidInfo(battleKey);
             if (updateResult.status === 'success') {
                 const update = updateResult.data;
                 this.updatesSubject.next(update);
             }
             // Why is there a 2s delay here? I don't remember, I just remember it breaking without it.
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // await new Promise((resolve) => setTimeout(resolve, 1000));
             return battleKey;
         }, 50)).subscribe(battleKey => {
             this.queueLength--;

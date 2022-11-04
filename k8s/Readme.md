@@ -20,8 +20,8 @@ docker push 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
   // curl -k -H "Content-Type: application/json" -X POST http://localhost:3001/initializeBrowser
   // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeLogin
   // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeManually
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/getRaidInfo -d "{\"battleKey\":\"EEFCE54B\"}"
+  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3001/1/getRaidInfo -d "{\"battleKey\":\"80A65145\"}"
 
   // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-0:3001/1/account/status
   // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-5:3001/1/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
-  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-1:3001/1/getRaidInfo -d "{\"battleKey\":\"458D5B0B\"}"
+  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-8:3001/1/getRaidInfo -d "{\"battleKey\":\"5C940415\"}"

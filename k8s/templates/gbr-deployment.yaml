@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: gbr-{{ .id }}
-        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.6
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.1.0
         ports:
         - name: "p9222"
           containerPort: 9222

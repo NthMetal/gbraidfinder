@@ -25,7 +25,8 @@ export class AppService {
     return {
       initializedBrowser: this.initializedBrowser,
       initializedLogin: this.initializedLogin,
-      initializedManually: this.initializedManually
+      initializedManually: this.initializedManually,
+      account: this.account
     }
   }
 
@@ -265,8 +266,8 @@ export class AppService {
       const hp_reg = shortData.match(/prt-raid-gauge-inner%22%20style%3D%22width%3A%20(.{2}|.{3})%25%3B/);
 
       // players - prt-flees-in%22%3E2%2F30%3C
-      //           prt-flees-in"  >  2/  30<
-      const players_reg = shortData.match(/prt-flees-in%22%3E(.{5}|.{6})%3C/);
+      //           prt-flees-in"  >  2/  30<                  1/6  1/18  10/30
+      const players_reg = shortData.match(/prt-flees-in%22%3E(.{5}|.{6}|.{7})%3C/);
 
       // time left - prt-remaining-time%22%3E01%3A15%3A51%3C
       //             prt-remaining-time"  >  01:  15:  51<

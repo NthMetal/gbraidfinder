@@ -8,8 +8,8 @@ import { environment } from 'src/environments/environment';
 })
 export abstract class ApiService {
 
-    private apiUrl = 'http://ab03fa61e9ff54cdaa96a0411941227a-113682306.us-east-2.elb.amazonaws.com';
-    // private apiUrl = environment.production ? 'http://a45046720dba34164b9cf84c303ad1b7-561645660.us-east-2.elb.amazonaws.com' : 'http://localhost:3000'
+    private apiUrl = 'http://a890d0112283f441c97c59d563d05071-370247399.us-east-2.elb.amazonaws.com';
+    // private apiUrl = environment.production ? 'http://a890d0112283f441c97c59d563d05071-370247399.us-east-2.elb.amazonaws.com' : 'http://localhost:3000'
     // private apiURL = '';
 
     constructor(protected http: HttpClient) {
