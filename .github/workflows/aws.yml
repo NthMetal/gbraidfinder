@@ -29,9 +29,9 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches: [ "master" ]
-    paths:
-      - back/**
-      - gbr/**
+    # paths:
+    #   - back/**
+    #   - gbr/**
 
 env:
   AWS_REGION: us-east-2                                      # set this to your preferred AWS region, e.g. us-west-1
@@ -56,7 +56,7 @@ jobs:
           back:
             - 'back/**'
           gbr:
-            - 'gbr/**
+            - 'gbr/**'
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
