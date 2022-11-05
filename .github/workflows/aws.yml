@@ -42,8 +42,8 @@ permissions:
   contents: read
 
 jobs:
-  deployraidfinder:
-    name: Deploy Raidfinder
+  deploy:
+    name: Deploy Image
     runs-on: ubuntu-latest
     environment: production
 
