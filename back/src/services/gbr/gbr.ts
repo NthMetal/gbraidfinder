@@ -19,6 +19,7 @@ export class GBR {
     constructor(instanceId: number, updates: Subject<Update>) {
         this.instanceId = instanceId;
         this.updatesSubject = updates;
+        this.handleUpdates();
     }
 
     private post(path: string, data: any) {
@@ -26,13 +27,12 @@ export class GBR {
 
             const stringifiedData = JSON.stringify(data);
             const hostname = process.env.NODE_ENV === 'dev' ? 'localhost' : 'gbr-service-' + this.instanceId;
+            const port = process.env.NODE_ENV === 'dev' ? 3001 + this.instanceId : 3001;
 
             const options = {
                 protocol: 'http:',
                 hostname,
-                // hostname: 'localhost',
-                port: 3001,
-                // port: 3001 + this.instanceId,
+                port,
                 path,
                 method: 'POST',
                 headers: {
@@ -70,8 +70,8 @@ export class GBR {
         this.username = username;
         this.password = password;
         this.rank = rank;
-        const accountSetResult = this.post('/1/account/set', { username, password, rank });
-        return accountSetResult;
+        // const accountSetResult = this.post('/1/account/set', { username, password, rank });
+        // return accountSetResult;
     }
 
     public initializeBrowser() {
@@ -90,16 +90,16 @@ export class GBR {
         return this.post('/1/getRaidInfo', { battleKey });
     }
 
-    public handleUpdates() {
+    private handleUpdates() {
         this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
-            console.log('getting raid info for', battleKey);
             const updateResult: any = await this.getRaidInfo(battleKey);
             if (updateResult.status === 'success') {
                 const update = updateResult.data;
                 this.updatesSubject.next(update);
             }
-            // Why is there a 2s delay here? I don't remember, I just remember it breaking without it.
-            // await new Promise((resolve) => setTimeout(resolve, 1000));
+            // wait 2 seconds before removing it from the queue
+            // so if another request comes within that time it'll go to another account
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             return battleKey;
         }, 50)).subscribe(battleKey => {
             this.queueLength--;

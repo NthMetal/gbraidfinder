@@ -63,63 +63,67 @@
               </div>
             </div>
             <mat-divider></mat-divider>
-            <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }"
-                      *ngFor="let raid of raids[raid_data.quest_id]" (click)="selectRaid(raid)">
-                <!-- { 
-                  "twitterUser": { 
-                    "name": "FREQ",
-                    "imgUrl": "a",   1046707735033565184/g_oRfx2P_normal.jpg
-                    "username": "Sm0325Freq",
-                    "verified": false
-                  },
-                  "locale": "JP",
-                  "message": "",
-                  "battleKey": "CAC6DF94",
-                  "quest_id": "301061" 
-                } -->
-                    <!-- <mat-icon *ngIf="raid.twitterUser.verified">verified</mat-icon> -->
-                <!-- <div style="position: absolute; background: rgba(85, 15, 15, 0.411); height: 100%; width: 100%; top: 0; left: 0;"
-                    [ngStyle]="{ 'width': raid.update?.hp ? raid.update?.hp + '%' : '0%' }"></div> -->
-                <div class="row align-items-center g-2">
-                  <!-- <div class="col-auto" [matTooltip]="raid.twitterUser.name">
-                    <img height="25px" [src]="raid.twitterUser.imgUrl === 'a' ? 'https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png' : 'https://pbs.twimg.com/profile_images/' + raid.twitterUser.imgUrl "/>
-                  </div> -->
-                  <div class="col">
-                    <mat-text style="font-size: 1.15rem">{{raid.battleKey}}</mat-text>
-                  </div>
-                  <div class="col-auto">
-                    <mat-text style="font-size: 0.8rem">{{raid.created_at | timeago}}</mat-text>
-                  </div>
-                  <div class="col-auto">
-                    <mat-icon>{{raid.update && !settings.copyOnly ? 'exit_to_app' : 'content_copy'}}</mat-icon>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    {{raid.message}}
-                  </div>
-                </div>
-                <div class="row mt-2 align-items-end" *ngIf="raid.update">
-                  <div class="col">
-                    <mat-progress-bar mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
-                  </div>
-                </div>
-                <!-- <div class="col-auto" style="line-height: 0.1rem;"> {{raid.update?.hp}}% </div> -->
-                <div class="row mt-2 flex-nowrap gx-2" *ngIf="raid.update">
-                  <div class="col d-flex align-items-center">{{raid.update?.hp}}% </div>
-                  <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
-                  <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
-                  <div class="col-auto d-flex align-items-center">
-                    <img height="20px" [src]="'assets/icons/' + raid.update.questHostClass + '.png'"/>
-                  </div>
-                </div>
-            </mat-card>
-            <!-- <div class="raid-card-spacer"></div> -->
+            <ng-container *ngFor="let raid of raids[raid_data.quest_id]">
+              <ng-container *ngTemplateOutlet="raidCard; context: {$implicit: raid}"></ng-container>
+            </ng-container>
         </div>
     </div>
 
   </div>
 </div>
+
+<ng-template #raidCard let-raid>
+  <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }" (click)="selectRaid(raid)">
+      <!-- { 
+        "twitterUser": { 
+          "name": "FREQ",
+          "imgUrl": "a",   1046707735033565184/g_oRfx2P_normal.jpg
+          "username": "Sm0325Freq",
+          "verified": false
+        },
+        "locale": "JP",
+        "message": "",
+        "battleKey": "CAC6DF94",
+        "quest_id": "301061" 
+      } -->
+          <!-- <mat-icon *ngIf="raid.twitterUser.verified">verified</mat-icon> -->
+      <!-- <div style="position: absolute; background: rgba(85, 15, 15, 0.411); height: 100%; width: 100%; top: 0; left: 0;"
+          [ngStyle]="{ 'width': raid.update?.hp ? raid.update?.hp + '%' : '0%' }"></div> -->
+      <div class="row align-items-center g-2">
+        <!-- <div class="col-auto" [matTooltip]="raid.twitterUser.name">
+          <img height="25px" [src]="raid.twitterUser.imgUrl === 'a' ? 'https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png' : 'https://pbs.twimg.com/profile_images/' + raid.twitterUser.imgUrl "/>
+        </div> -->
+        <div class="col">
+          <mat-text style="font-size: 1.15rem">{{raid.battleKey}}</mat-text>
+        </div>
+        <div class="col-auto">
+          <mat-text style="font-size: 0.8rem">{{raid.created_at | timeago}}</mat-text>
+        </div>
+        <div class="col-auto">
+          <mat-icon>{{raid.update && !settings.copyOnly ? 'exit_to_app' : 'content_copy'}}</mat-icon>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          {{raid.message}}
+        </div>
+      </div>
+      <div class="row mt-2 align-items-end" *ngIf="raid.update">
+        <div class="col">
+          <mat-progress-bar mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
+        </div>
+      </div>
+      <!-- <div class="col-auto" style="line-height: 0.1rem;"> {{raid.update?.hp}}% </div> -->
+      <div class="row mt-2 flex-nowrap gx-2" *ngIf="raid.update">
+        <div class="col d-flex align-items-center">{{raid.update?.hp}}% </div>
+        <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
+        <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
+        <div class="col-auto d-flex align-items-center">
+          <img height="20px" [src]="'assets/icons/' + raid.update.questHostClass + '.png'"/>
+        </div>
+      </div>
+  </mat-card>
+</ng-template>
 
 <ng-template #raidDialog>
   <mat-dialog height="large">

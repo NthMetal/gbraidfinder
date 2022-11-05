@@ -27,14 +27,12 @@ export class GbrService implements OnModuleInit {
             console.log(`Created gbr instance number ${index}`);
             try {
                 const initStatus: any = await gbr.getInitStatus();
-                await gbr.accountSet(
-                    initStatus.data?.account?.username || account.username,
-                    initStatus.data?.account?.password || account.password,
-                    initStatus.data?.account?.rank || account.rank);
+                // TODO: Remove this and set account information with k8s
+                gbr.accountSet(account.username, account.password, account.rank);
                 console.log(initStatus.data, account);
-                gbr.handleUpdates();
                 if (initStatus.data.initializedBrowser && initStatus.data.initializedLogin) {
                     console.log('gbr already initialized');
+                    index++;
                     continue;
                 }
                 const browserInitStatus = await gbr.initializeBrowser();
@@ -46,37 +44,9 @@ export class GbrService implements OnModuleInit {
             }
             index++;
         }
-        // setInterval(async () => {
-        //     this.gbrDetector.getStatus().then((result: any) => {
-        //         if (result.status) {
-        //             console.log('succesfully connected to instance, adding another')
-        //             this.gbrInstances.push(this.gbrDetector);
-        //             this.gbrCurrentId++;
-        //             this.gbrDetector = new GBR(this.gbrCurrentId);
-        //         }
-        //     }).catch(error => {
-        //         // console.log('e', error);
-        //     });
-        // }, 1000);
-        // const gbr1 = new GBR(1);
-        // console.log(await gbr1.getStatus());
-        // console.log(await gbr1.accountSet('account@email.here', 'accountpassword', 5));
-        // console.log(await gbr1.getStatus());
-        // console.log(await gbr1.initializeBrowser());
     }
 
     public async queueUpdate(raid: Raid, requiredRank: string): Promise<void> {
-        const errorResponse = {
-            resultStatus: 'granblueError',
-            link: '',
-            hp: '',
-            players: '',
-            timeLeft: '',
-            questHostClass: '',
-            raidPID: '',
-            questID: raid.quest_id,
-            battleKey: raid.battleKey
-        };
         const rankFiltered = this.gbrInstances.filter(gbr => gbr.rank >= +requiredRank);
         if (!rankFiltered.length) {
             // console.log('Unable to queue, no account has a high enough rank:', requiredRank)
