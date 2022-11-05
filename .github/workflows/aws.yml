@@ -69,5 +69,6 @@ jobs:
         # push it to ECR so that it can
         # be deployed to ECS.
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:latest -t $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG ./back
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG --all-tags
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG"
