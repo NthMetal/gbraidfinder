@@ -2,9 +2,12 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Subject } from 'rxjs';
 import { Twitter, Tweet } from './twitter';
 
+const twittertokens: string[] = require('../../../secrets/twittertokens.json');
+
 @Injectable()
 export class TwitterService implements OnModuleInit {
-    private token = '';
+    private token = twittertokens[0];
+    
     private twitter: Twitter = undefined;
 
     private tweets: Subject<Tweet> = new Subject();
