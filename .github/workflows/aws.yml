@@ -74,7 +74,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-      if: steps.changes.outputs.back == 'true'
+      if: steps.filter.outputs.back == 'true'
       run: |
         # Build a docker container and
         # push it to ECR so that it can
@@ -89,7 +89,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-      if: steps.changes.outputs.gbr == 'true'
+      if: steps.filter.outputs.gbr == 'true'
       run: |
         # Build a docker container and
         # push it to ECR so that it can
