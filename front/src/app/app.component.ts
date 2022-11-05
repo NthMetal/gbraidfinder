@@ -350,7 +350,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
 }
 
-
 // {
 //   "20": 6,
 //   "30": 6,
