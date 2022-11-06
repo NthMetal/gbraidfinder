@@ -7,8 +7,9 @@
     cursor: pointer;
 }
 
-.raid-card-selected {
-    filter: brightness(90%);
+.raid-card-selected, .raid-card-selected:hover{
+    filter: brightness(90%) grayscale();
+    color:hsl(0, 0%, 50%);
 }
 
 .raid-selected::after {
