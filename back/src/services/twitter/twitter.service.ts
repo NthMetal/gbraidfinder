@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { Twitter, Tweet } from './twitter';
 import { TwitterSource } from './twitterSource';
 
-const twittertokens: string[] = require('../../../secrets/twittertokens.json');
+const twittertokens: string[] = require('../../../secrets/twitter/twittertokens.json');
 
 @Injectable()
 export class TwitterService implements OnModuleInit {

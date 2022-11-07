@@ -4,7 +4,7 @@ import { Raid } from 'src/types/raid';
 import { Update } from 'src/types/update';
 import { GBR } from './gbr';
 
-const accounts = require('../../../secrets/accounts.json');
+const accounts = require('../../../secrets/accounnts/accounts.json');
 
 @Injectable()
 export class GbrService implements OnModuleInit {
