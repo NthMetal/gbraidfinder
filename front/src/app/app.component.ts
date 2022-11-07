@@ -73,7 +73,18 @@ export class AppComponent implements OnInit, OnDestroy {
   standardDifficulties: string[] = [];
   impossibleDifficulties: string[] = [];
 
+  tabActive = true;
+
   async ngOnInit(): Promise<void> {
+    document.addEventListener("visibilitychange", (event) => {
+      if (document.visibilityState == "visible") {
+        this.tabActive = true;
+        console.log('tab active');
+      } else {
+        this.tabActive = false;
+        console.log('tab not active');
+      }
+    });
 
     this.settings = JSON.parse(localStorage.getItem('settings') || JSON.stringify(this.settings));
 
@@ -150,7 +161,10 @@ export class AppComponent implements OnInit, OnDestroy {
       console.log('GOT STATUS', status);
     });
     this.socketioService.getRaids().subscribe(raid => {
-      if (this.raids[raid.quest_id]) this.raids[raid.quest_id].unshift(raid);
+      if (this.raids[raid.quest_id]) {
+        this.raids[raid.quest_id].unshift(raid);
+        if (!this.tabActive) { this.raids[raid.quest_id].pop() }
+      }
       else this.raids[raid.quest_id] = [raid];
       setTimeout(() => {
         const index = this.raids[raid.quest_id].indexOf(raid);

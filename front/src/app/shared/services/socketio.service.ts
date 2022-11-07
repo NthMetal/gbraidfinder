@@ -149,7 +149,7 @@ export class SocketioService {
             username: split[2],
             verified: !!+split[3]
         },
-        created_at: split[7],
+        created_at: new Date(),
         locale: !!+split[4] ? 'EN' : 'JP',
         message: split[8] ?? '',
         battleKey: split[5],
