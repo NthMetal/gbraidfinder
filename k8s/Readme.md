@@ -7,6 +7,11 @@ kubectl delete all --all -n gbr-context && helm uninstall --namespace=gbr-contex
 
 helm install --namespace=gbr-context --replace gbr .
 
+helm install --namespace=gbr-context --replace gbr .
+
+kubectl delete deploy raidfinder
+kubectl apply -f ./templates/raidfinder-deployment.yaml
+
 aws ecr get-login-password --region us-east-2 | do docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
 docker tag d2018a50b26a 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5

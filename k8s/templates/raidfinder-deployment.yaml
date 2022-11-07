@@ -16,13 +16,16 @@ spec:
     spec:
       containers:
       - name: raidfinder
-        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:0.1.10
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:latest
         ports:
         - name: "p3000"
           containerPort: 3000
         volumeMounts:
-          - mountPath: /usr/src/app/secrets
+          - mountPath: /usr/src/app/secrets/accounts
             name: accounts-secret
+            readOnly: true
+          - mountPath: /usr/src/app/secrets/twitter
+            name: twitter-tokens-secret
             readOnly: true
       volumes:
         - name: accounts-secret
@@ -31,6 +34,12 @@ spec:
             items:
             - key: accounts_json
               path: accounts.json
+        - name: twitter-tokens-secret
+          secret:
+            secretName: twitter-tokens-secret
+            items:
+            - key: twitter_tokens_json
+              path: twittertokens.json
 ---
 apiVersion: v1
 kind: Service

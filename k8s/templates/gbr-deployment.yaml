@@ -1,24 +1,24 @@
-{{- range .Values.gbrInstances }}
+{{- range $i, $s := (.Values.gbrInstances) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gbr-{{ .id }}
+  name: gbr-{{ $i }}
   labels:
-    app: gbr-{{ .id }}
+    app: gbr-{{ $i }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gbr-{{ .id }}
+      app: gbr-{{ $i }}
   template:
     metadata:
       labels:
-        app: gbr-{{ .id }}
+        app: gbr-{{ $i }}
     spec:
       containers:
-      - name: gbr-{{ .id }}
-        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.1.0
+      - name: gbr-{{ $i }}
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:latest
         ports:
         - name: "p9222"
           containerPort: 9222
@@ -28,10 +28,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gbr-service-{{ .id }}
+  name: gbr-service-{{ $i }}
 spec:
   selector:
-    app: gbr-{{ .id }}
+    app: gbr-{{ $i }}
   ports:
     - name: "p9222"
       protocol: TCP

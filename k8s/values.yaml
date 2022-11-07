@@ -1,11 +1,7 @@
-# not the best way to do this, but i was gonna add properties with each account, but then I removed that
+twittertokens:
+  - 'Put twitter token string here'
+
 gbrInstances:
-  - id: 0
-  - id: 1
-  - id: 2
-  - id: 3
-  - id: 4
-  - id: 5
-  - id: 6
-  - id: 7
-  - id: 8
+  - username: put-account-email-here
+    password: put-account-password-here
+    rank: 111 # put account rank here
