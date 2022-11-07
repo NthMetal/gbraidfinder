@@ -11,6 +11,7 @@ import { GbrService } from '../gbr/gbr.service';
 @Injectable()
 export class RaidService implements OnModuleInit {
     private raids: Subject<Raid> = new Subject<Raid>();
+    private duplicateRaidBuffer: Set<string> = new Set<string>();
 
     constructor(
         private twitterService: TwitterService,
@@ -19,6 +20,50 @@ export class RaidService implements OnModuleInit {
 
     async onModuleInit() {
         console.log('GBF Initialized');
+        this.twitterService.getTweetSources().subscribe(async tweetSource => {
+            // received: {
+            //     "identifier":"{
+            //         \"channel\":\"RescueChannel\",
+            //         \"monster_name\":\"Lv150 プロトバハムート\",
+            //         \"column_id\":\"1\"
+            //     }",
+            //     "message":[
+            //         {
+            //             "comment":"",
+            //             "created_at":"2022-11-07T01:42:44.943Z",
+            //             "eng":false,
+            //             "id":555514294,
+            //             "monster_name":"Lv150 プロトバハムート",
+            //             "rescue_id":"F119666D",
+            //             "twitter_id":"51445879",
+            //             "updated_at":"2022-11-07T01:42:44.943Z"
+            //         },
+            //         1667785364,
+            //         1667785364,
+            //         0
+            //     ]
+            // }
+            try {
+                const questName = tweetSource.message[0].monster_name;
+                const metadata = raidMetadata.find(meta => meta.tweet_name_en === questName || meta.tweet_name_jp === questName);
+                const raid: Raid = {
+                    twitterUser: {
+                        name: '',
+                        imgUrl: 'aaaaaaaaaaaaaaaaaaaaa',
+                        username: tweetSource.message[0].twitter_id,
+                        verified: false
+                    },
+                    created_at: (new Date()).toISOString(),
+                    locale: tweetSource.message[0].eng ? 'EN' : 'JP',
+                    message: tweetSource.message[0].comment,
+                    battleKey: tweetSource.message[0].rescue_id,
+                    quest_id: metadata?.quest_id
+                }
+                this.processRaid(raid, metadata.level, 'source');
+            } catch (error) {
+                console.log(error);
+            }
+        });
         this.twitterService.getTweets().subscribe(async tweet => {
             try {
                 const locale = tweet.matching_rules[0].tag;
@@ -44,10 +89,8 @@ export class RaidService implements OnModuleInit {
                     battleKey: msgKeySplit.slice(-10, -2),
                     quest_id: metadata?.quest_id
                 }
-                this.raids.next(raid);
 
-                // queue raid for update
-                this.gbrService.queueUpdate(raid, metadata.level);
+                this.processRaid(raid, metadata.level, 'twitter');
                 // if (raid.quest_id === '305171') {
                     
                 //     // const updatedRaid = await this.browserService.getRaidInfo(raid.battleKey, metadata.level);
@@ -72,6 +115,19 @@ export class RaidService implements OnModuleInit {
             }
         });
 
+    }
+
+    private processRaid(raid: Raid, level: string, source: string) {
+        const id = raid.battleKey;
+        const bufferHasId = this.duplicateRaidBuffer.has(id);
+        if (bufferHasId) return;
+        console.log(this.duplicateRaidBuffer.size, raid.battleKey, source);
+        this.duplicateRaidBuffer.add(id);
+        this.raids.next(raid);
+        this.gbrService.queueUpdate(raid, level);
+        setTimeout(() => {
+            this.duplicateRaidBuffer.delete(id);
+        }, 1000 * 60);
     }
 
     public getRaids(): Subject<Raid> {
