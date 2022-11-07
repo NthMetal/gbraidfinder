@@ -29,9 +29,9 @@ export class GbrService implements OnModuleInit {
                 const initStatus: any = await gbr.getInitStatus();
                 // TODO: Remove this and set account information with k8s
                 gbr.accountSet(account.username, account.password, account.rank);
-                console.log(initStatus.data, account);
+                console.log(index, account);
                 if (initStatus.data.initializedBrowser && initStatus.data.initializedLogin) {
-                    console.log('gbr already initialized');
+                    console.log('gbr already initialized', );
                     index++;
                     continue;
                 }
@@ -44,6 +44,8 @@ export class GbrService implements OnModuleInit {
             }
             index++;
         }
+        console.log('Finished Initializing');
+        console.log(this.gbrInstances.map(gbr => `${gbr.instanceId}:${gbr.rank}`));
     }
 
     public async queueUpdate(raid: Raid, requiredRank: string): Promise<void> {
@@ -52,7 +54,11 @@ export class GbrService implements OnModuleInit {
             // console.log('Unable to queue, no account has a high enough rank:', requiredRank)
             return;
         }
-        const smallestQueueGB = rankFiltered.reduce((prevGB, currGB) => prevGB.getQueueLength() < currGB.getQueueLength() ? prevGB : currGB);
+        // Get GB instance with smallest queue, otherwise get one with smallest rank
+        const smallestQueueGB = rankFiltered.reduce((prevGB, currGB) => {
+            if (prevGB.getQueueLength() === currGB.getQueueLength()) return prevGB.rank < currGB.rank ? prevGB : currGB
+            else return prevGB.getQueueLength() < currGB.getQueueLength() ? prevGB : currGB
+        });
         if (!smallestQueueGB) {
             // console.log('Unable to queue, something went wrong')
             return;

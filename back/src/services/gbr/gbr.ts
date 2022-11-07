@@ -101,7 +101,7 @@ export class GBR {
             // so if another request comes within that time it'll go to another account
             await new Promise((resolve) => setTimeout(resolve, 2000));
             return battleKey;
-        }, 50)).subscribe(battleKey => {
+        }, 10)).subscribe(battleKey => {
             this.queueLength--;
         });
     }

@@ -121,7 +121,7 @@ export class RaidService implements OnModuleInit {
         const id = raid.battleKey;
         const bufferHasId = this.duplicateRaidBuffer.has(id);
         if (bufferHasId) return;
-        console.log(this.duplicateRaidBuffer.size, raid.battleKey, source);
+        // console.log(this.duplicateRaidBuffer.size, raid.battleKey, source);
         this.duplicateRaidBuffer.add(id);
         this.raids.next(raid);
         this.gbrService.queueUpdate(raid, level);
