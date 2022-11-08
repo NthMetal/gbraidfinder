@@ -1,4 +1,5 @@
 <div class="row flex-column flex-nowrap h-100">
+  <!-- Top Navigation Header -->
   <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
     <div class="row">
       <div class="col-auto">
@@ -31,6 +32,7 @@
       </div>
     </div>
   </div>
+  <!-- Container that has raid columns -->
   <div class="col mt-5 pt-2">
     <div class="row align-items-center flex-nowrap" dragula="DRAGABLE_COLUMNS" [(dragulaModel)]="subscribedRaids">
         <div class="gx-0 col-2 bg-2 m-3" style="overflow: hidden; height: calc(100vh - 5.5rem); min-width: 20rem; border-radius: 0.5rem; box-shadow: 1px 2px 8px #101010;" *ngFor="let raid_data of subscribedRaids">
@@ -64,6 +66,7 @@
             </div>
             <mat-divider class="mb-1"></mat-divider>
             <div class="px-2" style="overflow-y: scroll; height: calc(100% - 3.5rem);">
+              <!-- Each Raid Card was put in an ng template for a feature in the future -->
               <ng-container *ngFor="let raid of raids[raid_data.quest_id]">
                 <ng-container *ngTemplateOutlet="raidCard; context: {$implicit: raid}"></ng-container>
               </ng-container>
@@ -121,7 +124,7 @@
         <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
         <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
         <div class="col-auto d-flex align-items-center">
-          <img height="20px" [src]="'assets/icons/' + raid.update.questHostClass + '.png'"/>
+          <img height="20px" [src]="'assets/icons/' + (raid.update.questHostClass || 'noclass') + '.png'"/>
         </div>
       </div>
   </mat-card>
