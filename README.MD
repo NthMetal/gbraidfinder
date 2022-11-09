@@ -39,3 +39,11 @@ Run `npm install` to install dependencies.
 Run `npm start` to host a local version of the project at `localhost:4200`
 
 Currently this will connect you to the backend that is already running without need to run the backend locally. (This may change in the future)
+
+## Architecture
+
+![GB Raidfinder Architecture](https://user-images.githubusercontent.com/7328874/200845422-cdabeef4-bc00-47c5-8548-158480fd9d44.png)
+
+Account Access through chrome debug port preview:
+
+![77UklZB85J](https://user-images.githubusercontent.com/7328874/200845657-eea8cc8f-021c-40e5-ad83-507d175f4bd9.gif)
