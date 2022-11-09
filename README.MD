@@ -42,7 +42,7 @@ Currently this will connect you to the backend that is already running without n
 
 ## Architecture
 
-![GB Raidfinder Architecture](https://user-images.githubusercontent.com/7328874/200845422-cdabeef4-bc00-47c5-8548-158480fd9d44.png)
+![GB Raidfinder Architecture (1)](https://user-images.githubusercontent.com/7328874/200879189-95e078ac-307f-4c2c-9604-6afed6913dbb.png)
 
 Account Access through chrome debug port preview:
 
