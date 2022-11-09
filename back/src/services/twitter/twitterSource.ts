@@ -58,6 +58,8 @@ export class TwitterSource {
         const wss = new WebSocket(this.sourceUrl);
         wss.on('open', open => {
             this.reconnectionAttempts = 0;
+            this.subscribedRaidCount = 0;
+            console.log('Connecting twitter source')
             // const testmeta = [{ "element": "dark", "tweet_name_en": "Lvl 150 Proto Bahamut", "tweet_name_jp": "Lv150 プロトバハムート", "quest_name_en": "Wings of Terror (Impossible)","quest_name_jp": "邂逅、黒銀の翼ＨＬ","quest_id": "301061","level": "101","impossible": 2,"difficulty": "6","stage_id": "12061","thumbnail_image": "high_proto_bahamut" }]
             // TODO: Abstract this part
             raidMetadata.forEach((raid, index) => {
@@ -78,12 +80,15 @@ export class TwitterSource {
             };
         });
         wss.on('error', error => {
+            console.log('twitter source error');
             this.reconnect();
         });
         wss.on('unexpected-response', error => {
+            console.log('twitter source unexpected-response');
             this.reconnect();
         });
         wss.on('close', error => {
+            console.log('twitter source close');
             this.reconnect();
         });
     }
