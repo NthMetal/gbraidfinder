@@ -146,7 +146,7 @@
       <div class="col">
         <mat-form-field class="w-100" appearance="outline">
           <mat-label>Search Raids</mat-label>
-          <input matInput placeholder="ex: Shiva (Impossible) or シヴァＨＬ" [(ngModel)]="raidSearch" (ngModelChange)="raidSearchSubject.next($event)">
+          <input matInput placeholder="ex: Shiva (Impossible) or シヴァＨＬ or Fire" [(ngModel)]="raidSearch" (ngModelChange)="raidSearchSubject.next($event)">
           <mat-icon class="mr-2" matPrefix>search&nbsp;</mat-icon>
         </mat-form-field>
         <!-- <mat-form-field class="w-100" appearance="outline">
@@ -190,7 +190,7 @@
     </div> --> 
     <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '1'">
       <div class="col">
-        <div class="row my-4 w-100" *ngFor="let difficulty of standardDifficulties">
+        <div class="row my-3 w-100" *ngFor="let difficulty of standardDifficulties">
           <div class="raid-card col-auto my-1 mx-2" [matTooltip]="raid.quest_name_en" [ngClass]="{'raid-selected': raid.selected}" *ngFor="let raid of raidSearchFiltered.standard[difficulty]"
             [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
             (click)="toggleRaid(raid.quest_id)">
@@ -202,7 +202,7 @@
     </div>
     <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '2'">
       <div class="col">
-        <div class="row my-4 w-100" *ngFor="let difficulty of impossibleDifficulties">
+        <div class="row my-3 w-100" *ngFor="let difficulty of impossibleDifficulties">
           <div class="raid-card col-auto my-1 mx-2" [matTooltip]="raid.quest_name_en" [ngClass]="{'raid-selected': raid.selected}" *ngFor="let raid of raidSearchFiltered.impossible[difficulty]"
             [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
             (click)="toggleRaid(raid.quest_id)">
