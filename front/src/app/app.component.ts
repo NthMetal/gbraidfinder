@@ -220,7 +220,7 @@ export class AppComponent implements OnInit, OnDestroy {
       const maxPlayers = this.settings.maxPlayers === 0 ? 999 : this.settings.maxPlayers;
       const minPlayers = this.settings.minPlayers === 0 ? -1 : this.settings.minPlayers;
 
-      if (update.hp <= this.settings.minHP || update.hp > this.settings.maxHP || players <= minPlayers || players > maxPlayers) {
+      if (update.hp < this.settings.minHP || update.hp > this.settings.maxHP || players <= minPlayers || players > maxPlayers) {
         console.log(`removed raid ${raid.battleKey} > ${this.settings.minHP}<${update.hp}<=${this.settings.maxHP}?   ${minPlayers}<${players}<=${maxPlayers}?`)
         this.raids[raid.quest_id].splice(raidIndex, 1)
       }
