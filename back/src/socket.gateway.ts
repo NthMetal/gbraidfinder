@@ -68,7 +68,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
         });
         // Send status
         setInterval(() => {
-            this.socketUtils.emitStatus(this.socket, this.usersConnected);
+            this.emitStatus(this.socket);
         }, 60000);
     }
 
@@ -79,7 +79,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
     async handleConnection(socket: Socket) {
         this.usersConnected++;
-        this.socketUtils.emitStatus(socket, this.usersConnected);
+        this.emitStatus(socket);
         console.log('USER CONNECTED======================================================', this.usersConnected, Object.keys(this.socket?.sockets || {}).length);
         // const miniRaid = `username|a|twusername` +
         //                  `|0|0|12345678` +
@@ -105,6 +105,17 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
         //     this.socketUtils.emitToRoom('u305171', 'update', miniUpdate);
         //     this.socketUtils.emitToRoom('u305171', 'update', miniUpdatecopy);
         // }, 2000);
+    }
+
+    private emitStatus(socket: Socket | Server) {
+        const raidStatus = this.raidService.getStatuses();
+        const socketStatus = { active: true, usersConnected: this.usersConnected };
+        const allStatus = {
+            raidStatus,
+            socketStatus
+        };
+        console.log('emitting', allStatus);
+        this.socketUtils.emitStatus(socket, allStatus);
     }
 
     @SubscribeMessage('subscribe')

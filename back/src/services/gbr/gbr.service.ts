@@ -70,4 +70,8 @@ export class GbrService implements OnModuleInit {
         return this.updates;
     }
 
+    public getStatuses() {
+        return this.gbrInstances.map(gbr => gbr.lastUpdateProcessedAt);
+    }
+
 }

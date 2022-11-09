@@ -16,6 +16,8 @@ export class GBR {
 
     private readonly updatesSubject: Subject<Update>;
 
+    public lastUpdateProcessedAt;
+
     constructor(instanceId: number, updates: Subject<Update>) {
         this.instanceId = instanceId;
         this.updatesSubject = updates;
@@ -93,6 +95,7 @@ export class GBR {
     private handleUpdates() {
         this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
             const updateResult: any = await this.getRaidInfo(battleKey);
+            this.lastUpdateProcessedAt = new Date();
             if (updateResult.status === 'success') {
                 const update = updateResult.data;
                 this.updatesSubject.next(update);

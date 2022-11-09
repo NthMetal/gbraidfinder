@@ -137,4 +137,11 @@ export class RaidService implements OnModuleInit {
     public getUpdates(): Subject<Update> {
         return this.gbrService.getUpdates();
     }
+
+    public getStatuses() {
+        return {
+            tweetStatus: this.twitterService.getStatuses(),
+            gbrStatus: this.gbrService.getStatuses()
+        }
+    }
 }

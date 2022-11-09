@@ -9,12 +9,7 @@ export class SocketUtils {
         this.socket = socket;
     }
 
-    private getStatus(usersConnected: number) {
-        return { active: true, usersConnected }
-    }
-
-    public emitStatus(socket: Socket | Server, usersConnected: number) {
-        const status = this.getStatus(usersConnected);
+    public emitStatus(socket: Socket | Server, status: any) {
         socket.emit('status', Buffer.from(pako.deflate(JSON.stringify(status))));
     }
 

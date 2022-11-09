@@ -16,6 +16,11 @@ export class TwitterService implements OnModuleInit {
 
     // private raidCounter = 0;
     // private timeElapsed = 0;
+    tweetStatus = {
+        lastTweetRecievedAt: undefined,
+        lastTweetSourceRecievedAt: undefined
+    }
+
 
     async onModuleInit() {
         /**
@@ -24,6 +29,7 @@ export class TwitterService implements OnModuleInit {
         const twitterSource = new TwitterSource('wss://gbf-twitter-anycable.herokuapp.com/cable');
         twitterSource.getTweets().subscribe(tweetSource => {
             this.tweetSources.next(tweetSource);
+            this.tweetStatus.lastTweetSourceRecievedAt = new Date();
         });
         /**
          * Connect directly to twitter
@@ -35,6 +41,7 @@ export class TwitterService implements OnModuleInit {
                 // console.log(JSON.stringify(tweet));
                 this.tweets.next(tweet);
                 // this.raidCounter ++;
+                this.tweetStatus.lastTweetRecievedAt = new Date();
             }
         });
 
@@ -50,6 +57,10 @@ export class TwitterService implements OnModuleInit {
 
     public getTweetSources(): Subject<any> {
         return this.tweetSources;
+    }
+
+    public getStatuses() {
+        return this.tweetStatus;
     }
 
 }
