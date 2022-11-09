@@ -18,6 +18,9 @@ i {  color:#72767d }
     .mat-dialog-container {
         padding: 0;
     }
+    .mat-progress-bar.mat-warn .mat-progress-bar-buffer {
+        filter: contrast(1.15);
+    }
 }
 
 .gbraidfinder-light-theme {

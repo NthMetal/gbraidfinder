@@ -263,7 +263,7 @@ export class AppService {
 
       // hp  - prt-raid-gauge-inner%22%20style%3D%22width%3A%2019%25%3B
       //       prt-raid-gauge-inner"     style=  "  width:     19%  ;
-      const hp_reg = shortData.match(/prt-raid-gauge-inner%22%20style%3D%22width%3A%20(.{2}|.{3})%25%3B/);
+      const hp_reg = shortData.match(/prt-raid-gauge-inner%22%20style%3D%22width%3A%20(.{1}|.{2}|.{3})%25%3B/);
 
       // players - prt-flees-in%22%3E2%2F30%3C
       //           prt-flees-in"  >  2/  30<                  1/6  1/18  10/30
