@@ -195,7 +195,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.socketioService.getRaids().subscribe(raid => {
       if (this.raids[raid.quest_id]) {
         this.raids[raid.quest_id].unshift(raid);
-        if (!this.tabActive) { this.raids[raid.quest_id].pop() }
+        if (!this.tabActive && this.raids[raid.quest_id].length > 20) { this.raids[raid.quest_id].pop() }
       }
       else this.raids[raid.quest_id] = [raid];
       setTimeout(() => {
