@@ -7,20 +7,13 @@ import { SettingsService } from './settings.service';
 })
 export class NotificationService {
   notificationsSubject: Subject<{raid: any, questTitle: string}> = new Subject<{raid: any, questTitle: string}>();
+  hasNotificationPermission = false;
 
   /**
    * Initialize, inject settingsService
    * Ask for permission to show notifications
    */
   constructor(private settingsService: SettingsService) {
-    console.log(Notification.permission);
-    
-    if (Notification.permission !== "denied") {
-      Notification.requestPermission().then(permission => {
-        console.log(permission);
-      });
-    }
-
     /**
      * Subscribe to notifications subject to show the notification
      * Lets us use rxjs pipe operators to modify how often notifications are shown
@@ -28,6 +21,19 @@ export class NotificationService {
     this.notificationsSubject.pipe(throttleTime(5000)).subscribe(notification => {
       this.showNotification(notification.raid, notification.questTitle);
     });
+  }
+
+  /**
+   * Requests permission to show notifications
+   */
+  public requestNotificationPermission() {
+    try {
+      if (!this.hasNotificationPermission && Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') this.hasNotificationPermission = true;
+        });
+      }
+    } catch (error) {}
   }
 
   /**
@@ -47,6 +53,8 @@ export class NotificationService {
       !this.settingsService.settings.notificationsEnabled ||
       !this.settingsService.settings.questNotificationSettings[raid.quest_id] ||
       !this.settingsService.settings.questNotificationSettings[raid.quest_id].enabled) return;
+      
+    this.requestNotificationPermission();
 
     const bodyMessage = !this.settingsService.settings.copyOnly && raid.update ? `Click to open raid in new tab. 🚪 ${raid.battleKey}` : `Click to Copy 📋 ${raid.battleKey}`;
     const bodyHPInfo = raid.update ? `${'▰'.repeat(Math.floor((+raid.update.hp)/5))}${'▱'.repeat(20 - Math.floor((+raid.update.hp)/5))}` : '';

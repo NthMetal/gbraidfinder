@@ -302,6 +302,9 @@ export class AppComponent implements OnInit, OnDestroy {
     settings.questNotificationSettings[raid.quest_id] ?
     settings.questNotificationSettings[raid.quest_id].enabled = !settings.questNotificationSettings[raid.quest_id].enabled :
     settings.questNotificationSettings[raid.quest_id] = { enabled: true, notificationOnUpdate: true}
+
+    if (settings.questNotificationSettings[raid.quest_id]?.enabled) this.notificationService.requestNotificationPermission();
+
     this.settingsService.updateSettings();
   }
 
