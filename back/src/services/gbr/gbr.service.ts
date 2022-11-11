@@ -4,8 +4,6 @@ import { Raid } from 'src/types/raid';
 import { Update } from 'src/types/update';
 import { GBR } from './gbr';
 
-const accounts = require('../../../secrets/accounts/accounts.json');
-
 @Injectable()
 export class GbrService implements OnModuleInit {
 
@@ -19,30 +17,11 @@ export class GbrService implements OnModuleInit {
     constructor() {}
 
     async onModuleInit() {
-        let index = 0;
-        console.log('initializing accounts: ', accounts)
-        for (const account of accounts) {
-            const gbr = new GBR(index, this.updates);
+        const numberOfAccounts = (+process.env.GBR_INSTANCE_COUNT || 1);
+        console.log(`Initializing ${numberOfAccounts} accounts`)
+        for(let i=0; i < numberOfAccounts; i++) {
+            const gbr = new GBR(i, this.updates);
             this.gbrInstances.push(gbr);
-            console.log(`Created gbr instance number ${index}`);
-            try {
-                const initStatus: any = await gbr.getInitStatus();
-                // TODO: Remove this and set account information with k8s
-                gbr.accountSet(account.username, account.password, account.rank);
-                console.log(index, account);
-                if (initStatus.data.initializedBrowser && initStatus.data.initializedLogin) {
-                    console.log('gbr already initialized', );
-                    index++;
-                    continue;
-                }
-                const browserInitStatus = await gbr.initializeBrowser();
-                const manualInitStatus = await gbr.initializeManually();
-                console.log('set account for:', initStatus.data?.account?.username, account.username, browserInitStatus, manualInitStatus);
-            } catch(error) {
-                console.log('error setting account:');
-                console.log(error);
-            }
-            index++;
         }
         console.log('Finished Initializing');
         console.log(this.gbrInstances.map(gbr => `${gbr.instanceId}:${gbr.rank}`));

@@ -7,13 +7,26 @@ export class AppService {
   private account: { username: string, password: string, rank: number } = undefined;
 
   private initializedBrowser = false;
-  private initializedLogin = false;
-  private initializedManually = false;
+  private loggedIn = false;
   private browser: puppeteer.Browser;
   private page: puppeteer.Page;
 
-  constructor() { }
+  constructor() {
+    this.account = {
+      username: process.env.GBR_ACCOUNT_USERNAME,
+      password: process.env.GBR_ACCOUNT_PASSWORD,
+      rank: +process.env.GBR_ACCOUNT_RANK,
+    }
+    console.log('Initialized Account', this.account);
+    this.initializeBrowser().then(result => {
+      if (result === 'success') this.loginToGBF();
+    });
+  }
 
+  /**
+   * Gets the currently set account info
+   * @returns the currently set account info
+   */
   public getAccount() {
     return this.account;
   };
@@ -24,21 +37,15 @@ export class AppService {
   public getInitStatus() {
     return {
       initializedBrowser: this.initializedBrowser,
-      initializedLogin: this.initializedLogin,
-      initializedManually: this.initializedManually,
       account: this.account
     }
-  }
-
-  public setAccount(username, password, rank) {
-    this.account = { username, password, rank }
-    return 'success';
   }
 
   /**
    * Starts the puppeteer browser
    */
-  public async initalizeBrowser() {
+  private async initializeBrowser() {
+    console.log('Initializing Browser', this.initializedBrowser, this.account);
     if (this.initializedBrowser) return 'already initialized';
     if (!this.account) return 'no account';
     try {
@@ -46,41 +53,19 @@ export class AppService {
       const launchOptions = process.env.NODE_ENV === 'dev' ? { headless: false } : { args: ['--no-sandbox', '--disable-setuid-sandbox', '--remote-debugging-address=0.0.0.0', '--remote-debugging-port=9222'] }
       this.browser = await puppeteer.launch(launchOptions);
       this.page = (await this.browser.pages())[0];
-      await this.page.goto(`http://localhost/${this.account.username}/${this.account.password}/${this.account.rank}`);
+      this.browser.on('disconnected', () => {
+        throw new Error('Browser Disconnected');
+      })
     } catch (error) {
-      console.log(error);
+      console.log('Initializing browser error', error);
       return 'error';
     }
+    // try {
+    //   // go to this page so you can see the account you need to log in to so manual initialization is easier
+    //   await this.page.goto(`http://localhost/${process.env.HOSTNAME}/${this.account.username}/${this.account.password}/${this.account.rank}`);
+    // } catch (error) {}
     this.initializedBrowser = true;
-    return 'success';
-  }
-
-  /**
-   * Attempts to log in to gbf
-   * @returns status
-   */
-  public async initializeLogin() {
-    if (!this.initializedBrowser) return 'initialize browser first';
-    if (this.initializedLogin) return 'already initialized';
-    if (!this.account) return 'no account';
-    try {
-      this.page = await this.loginToGBF();
-    } catch (error) {
-      console.log(error);
-      return 'error';
-    }
-    this.initializedLogin = true;
-    return 'success';
-  }
-
-  /**
-   * marks the microservice that it will be logged into manually
-   * @returns success
-   */
-  public async initializeManually() {
-    this.initializedBrowser = true;
-    this.initializedLogin = true;
-    this.initializedManually = true;
+    console.log('Initialized Browser');
     return 'success';
   }
 
@@ -89,13 +74,12 @@ export class AppService {
    * Does not fill out captchas and will wait forever
    * @returns logged in puppeteer page promise
    */
-  private async loginToGBF(): Promise<puppeteer.Page> {
-    const page = await this.browser.newPage();
-    await page.setDefaultNavigationTimeout(0);
+  private async loginToGBF(): Promise<void> {
+    await this.page.setDefaultNavigationTimeout(0);
 
     console.log('navigating')
     // await page.goto('https://developers.google.com/web/');
-    await page.goto('https://game.granbluefantasy.jp/');
+    await this.page.goto('https://game.granbluefantasy.jp/');
 
     // // Type into search box.
     // await page.type('.devsite-search-field', 'Headless Chrome');
@@ -106,53 +90,56 @@ export class AppService {
     // document.onmousemove = function (e) {var x = e.pageX;var y = e.pageY;e.target.title = "X is " + x + " and Y is " + y;};
 
     // Click login button on gbf
-    await page.waitForSelector('#start');
-    await page.mouse.move(20, 470); // let's assume this is inside the element I want
-    await page.mouse.down();
+    await this.page.waitForSelector('#start', { timeout: 0 });
+    await this.page.mouse.move(20, 470); // let's assume this is inside the element I want
+    await this.page.mouse.down();
     await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
-    await page.mouse.up();
-    await page.mouse.click(20, 470);
+    await this.page.mouse.up();
+    await this.page.mouse.click(20, 470);
 
     // Click mobage option button
-    await page.waitForSelector('.btn-auth-login');
-    await page.mouse.move(100, 130); // let's assume this is inside the element I want
-    await page.mouse.down();
+    await this.page.waitForSelector('.btn-auth-login', { timeout: 0 });
+    await this.page.mouse.move(100, 130); // let's assume this is inside the element I want
+    await this.page.mouse.down();
     await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
-    await page.mouse.up();
-    await page.mouse.click(100, 130);
+    await this.page.mouse.up();
+    await this.page.mouse.click(100, 130);
 
     
-    const pageTarget = page.target();
+    const pageTarget = this.page.target();
     const newTarget = await this.browser.waitForTarget(target => target.opener() === pageTarget);
     const mpage = await newTarget.page();
 
-    await mpage.waitForSelector('#subject-id');
-    await mpage.type('#subject-id', this.account.username);
-    await mpage.type('#subject-password', this.account.password);
+    await mpage.waitForSelector('#subject-id', { timeout: 0 });
+    await mpage.type('#subject-id', this.account.username || '');
+    await mpage.type('#subject-password', this.account.password || '');
     // await mpage.type('#subject-id', 'account@email.here');
     // await mpage.type('#subject-password', 'accountpassword');
     // await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Click the login button
-    await mpage.waitForSelector('.g-recaptcha.btn-positive.w-max');
-    await mpage.mouse.move(400, 250); // let's assume this is inside the element I want
-    await mpage.mouse.down();
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
-    await mpage.mouse.up();
-    await mpage.mouse.click(400, 250);
+    // everything ahead is commented out to stop it from logging in further
+    // because dealing with the captcha part is tricky so it's done manually for now
 
-    // captcha usually happens here
+    // // Click the login button
+    // await mpage.waitForSelector('.g-recaptcha.btn-positive.w-max');
+    // await mpage.mouse.move(400, 250); // let's assume this is inside the element I want
+    // await mpage.mouse.down();
+    // await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
+    // await mpage.mouse.up();
+    // await mpage.mouse.click(400, 250);
 
-    // click the ok button after success
-    await mpage.waitForSelector('#notify-response-button', { timeout: 0 });
-    await mpage.mouse.move(400, 440); // let's assume this is inside the element I want
-    await mpage.mouse.down();
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
-    await mpage.mouse.up();
-    await mpage.mouse.click(400, 440);
+    // // captcha usually happens here
 
-    await page.waitForSelector('.btn-link-quest');
-    return page;
+    // // click the ok button after success
+    // await mpage.waitForSelector('#notify-response-button', { timeout: 0 });
+    // await mpage.mouse.move(400, 440); // let's assume this is inside the element I want
+    // await mpage.mouse.down();
+    // await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 secs
+    // await mpage.mouse.up();
+    // await mpage.mouse.click(400, 440);
+
+    // await page.waitForSelector('.btn-link-quest');
+    // return page;
 
     // const raids_page = await this.browser.newPage();
     // await raids_page.goto('https://game.granbluefantasy.jp/#quest/multi/0');
@@ -167,8 +154,9 @@ export class AppService {
   public async getRaidInfo(battleKey: string) {
     if (!this.account) return { status: 'no account'};
     if (!this.initializedBrowser) return { status: 'browser not initialized' };
-    if (!this.initializedLogin) return { status: 'login not initialized' };
-    if (this.initializedManually && this.page.url() != 'https://game.granbluefantasy.jp/#mypage') return { status: 'not initialized' }
+    if (this.loggedIn || this.page.url() === 'https://game.granbluefantasy.jp/#mypage') {
+      this.loggedIn = true;
+    } else return { status: 'not logged in' }
     const raidInfoResult = await this.page.evaluate(async (battleKey) => {
       const offset = 1000 + (Math.floor(Math.random() * 999));
       const time = (new Date()).getTime();
@@ -287,8 +275,7 @@ export class AppService {
         questHostClass: questHostClass_reg ? questHostClass_reg[1] : '',
         raidPID,
         questID,
-        battleKey,
-        // test: shortData
+        battleKey
       };
 
 

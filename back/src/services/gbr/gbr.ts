@@ -6,8 +6,6 @@ export class GBR {
 
     instanceId: number = 0;
 
-    private username: string = '';
-    private password: string = '';
     public rank: number = 0;
 
     public queueLength = 0;
@@ -21,10 +19,16 @@ export class GBR {
     constructor(instanceId: number, updates: Subject<Update>) {
         this.instanceId = instanceId;
         this.updatesSubject = updates;
-        this.handleUpdates();
+        this.accountRank().then(result => {
+            console.log(`${result.status} Rank ${result.data} for instance number ${this.instanceId}`)
+            if (result.status === 'success') {
+                this.rank = result.data;
+                this.handleUpdates();
+            }
+        });
     }
 
-    private post(path: string, data: any) {
+    private post(path: string, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
 
             const stringifiedData = JSON.stringify(data);
@@ -56,44 +60,33 @@ export class GBR {
         });
     }
 
-    public getStatus() {
-        return this.post('/1/account/status', {});
+    public accountRank(): Promise<{
+        status: 'success' | 'unset',
+        data: number
+    }> {
+        return this.post('/account/rank', {});
     }
 
-    public getInitStatus() {
-        return this.post('/1/init/status', {});
-    }
-
-    public accountRank(): any {
-        return this.post('/1/account/rank', {});
-    }
-
-    public accountSet(username: string, password: string, rank: number) {
-        this.username = username;
-        this.password = password;
-        this.rank = rank;
-        // const accountSetResult = this.post('/1/account/set', { username, password, rank });
-        // return accountSetResult;
-    }
-
-    public initializeBrowser() {
-        return this.post('/1/initializeBrowser', {});
-    }
-
-    public initializeLogin() {
-        return this.post('/1/initializeLogin', {});
-    }
-
-    public initializeManually() {
-        return this.post('/1/initializeManually', {});
-    }
-
-    public getRaidInfo(battleKey: string) {
-        return this.post('/1/getRaidInfo', { battleKey });
+    public getRaidInfo(battleKey: string): Promise<{
+        status: 'success' | 'error',
+        data: {
+            resultStatus: string,
+            link: string,
+            hp: string,
+            players: string,
+            timeLeft: string,
+            questHostClass: string,
+            raidPID: string,
+            questID: string,
+            battleKey: string
+        }
+    }> {
+        return this.post('/getRaidInfo', { battleKey });
     }
 
     private handleUpdates() {
         this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
+            console.log('getting raid info for ', battleKey);
             const updateResult: any = await this.getRaidInfo(battleKey);
             this.lastUpdateProcessedAt = new Date();
             if (updateResult.status === 'success') {
@@ -123,7 +116,6 @@ export class GBR {
     }
 
     public schedule(battleKey: string) {
-        // console.log('queueing', battleKey);
         this.queueLength++;
         this.queueSubject.next(battleKey);
     }
