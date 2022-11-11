@@ -7,7 +7,7 @@ kubectl delete all --all -n gbr-context && helm uninstall --namespace=gbr-contex
 
 helm install --namespace=gbr-context --replace gbr .
 
-helm install --namespace=gbr-context --replace gbr .
+helm template .
 
 kubectl delete deploy raidfinder
 kubectl apply -f ./templates/raidfinder-deployment.yaml

@@ -19,6 +19,13 @@ spec:
       containers:
       - name: gbr-{{ $i }}
         image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:latest
+        env:
+        - name: GBR_ACCOUNT_USERNAME
+          value: '{{ .username }}'
+        - name: GBR_ACCOUNT_PASSWORD
+          value: '{{ .password }}'
+        - name: GBR_ACCOUNT_RANK
+          value: '{{ .rank }}'
         ports:
         - name: "p9222"
           containerPort: 9222

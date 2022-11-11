@@ -17,23 +17,17 @@ spec:
       containers:
       - name: raidfinder
         image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/raidfinder-containers:latest
+        env:
+          - name: GBR_INSTANCE_COUNT
+            value: '{{ len .Values.gbrInstances }}'
         ports:
         - name: "p3000"
           containerPort: 3000
         volumeMounts:
-          - mountPath: /usr/src/app/secrets/accounts
-            name: accounts-secret
-            readOnly: true
           - mountPath: /usr/src/app/secrets/twitter
             name: twitter-tokens-secret
             readOnly: true
       volumes:
-        - name: accounts-secret
-          secret:
-            secretName: accounts-secret
-            items:
-            - key: accounts_json
-              path: accounts.json
         - name: twitter-tokens-secret
           secret:
             secretName: twitter-tokens-secret
