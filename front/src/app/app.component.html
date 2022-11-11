@@ -279,12 +279,12 @@
                   <div class="col">
                     <mat-label>Min HP</mat-label>
                     <p style="text-align: center;">{{settingsService.settings.minHP}}%</p>
-                    <mat-slider min="0" max="100" step="1" value="0" [(ngModel)]="settingsService.settings.minHP" name="minHP" style="width: 100%"></mat-slider>
+                    <mat-slider thumbLabel min="0" max="100" step="1" value="0" [(ngModel)]="settingsService.settings.minHP" name="minHP" style="width: 100%"></mat-slider>
                   </div>
                   <div class="col">
                     <mat-label>Max HP</mat-label>
                     <p style="text-align: center;">{{settingsService.settings.maxHP}}%</p>
-                    <mat-slider min="1" max="100" step="1" value="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP" style="width: 100%"></mat-slider>
+                    <mat-slider thumbLabel min="1" max="100" step="1" value="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP" style="width: 100%"></mat-slider>
                   </div>
                 </div>
               </div>
@@ -303,13 +303,13 @@
                 <h4 class="mt-4 mb-2 mx-0">Filter by Max Players.</h4>
                 <mat-label>Maximum Players</mat-label>
                 <p style="text-align: center;">{{settingsService.settings.maxPlayers}}</p>
-                <mat-slider min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers" style="width: 100%"></mat-slider>
+                <mat-slider thumbLabel min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers" style="width: 100%"></mat-slider>
               </div>
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Filter by Min players.</h4>
                 <mat-label>Minimum Players</mat-label>
                 <p style="text-align: center;">{{settingsService.settings.minPlayers}}</p>
-                <mat-slider min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers" style="width: 100%"></mat-slider>
+                <mat-slider thumbLabel min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers" style="width: 100%"></mat-slider>
               </div>
             </div>
             <div class="row flex-row-vertical">
