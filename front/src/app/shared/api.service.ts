@@ -8,8 +8,8 @@ import { environment } from 'src/environments/environment';
 })
 export abstract class ApiService {
 
-    private apiUrl = 'http://a868a8c31504e4112a3411a9209b472c-896034623.us-east-2.elb.amazonaws.com';
-    // private apiUrl = environment.production ? 'http://a890d0112283f441c97c59d563d05071-370247399.us-east-2.elb.amazonaws.com' : 'http://localhost:3000'
+    private apiUrl = 'http://a27afc9d69f9d4c869231eac09110c27-46112890.us-east-2.elb.amazonaws.com';
+    // private apiUrl = environment.production ? 'https://gbraidfinderapi.ogres.cc' : 'http://gbraidfinderapi.ogres.cc'
     // private apiURL = '';
 
     constructor(protected http: HttpClient) {
