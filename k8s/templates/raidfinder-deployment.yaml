@@ -45,18 +45,24 @@ apiVersion: v1
 kind: Service
 metadata:
   name: raidfinder-service
+  annotations:
+    # service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    # Backend talks over http and ws protocols so 'http' cannot be used because it does not allow ws upgrade.
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    # Non-sensitive information. Replace with your own cert arn if running your own instance
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-2:833642098503:certificate/ab6018f0-5684-4a8d-bcc4-985350760284
+    # Only run SSL (Secure TCP) on the port named "https" below.
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
   labels:
     app: raidfinder
 spec:
   type: LoadBalancer
   ports:
-  - name: "p80"
+  - name: http
     port: 80
     targetPort: 3000
-  - name: "p443"
+  - name: https
     port: 443
     targetPort: 3000
   selector:
     app: raidfinder
-
-# kubectl expose --namespace=gbr-context deployment raidfinder --type=LoadBalancer --port=3000 --target-port=3000 --name=raidfinder-service2

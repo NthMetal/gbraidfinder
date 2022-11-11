@@ -17,6 +17,8 @@ aws ecr get-login-password --region us-east-2 | docker login --username AWS --pa
 docker tag d2018a50b26a 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
 docker push 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
 
+kubectl expose --namespace=gbr-context deployment raidfinder --type=LoadBalancer --port=3000 --target-port=3000 --name=raidfinder-service2
+
   // curl -k -H "Content-Type: application/json" -X POST http://afe2adbec799b4028a87105169e19b8c-535904035.us-east-2.elb.amazonaws.com:3001/3001/account/status
   // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/status
   // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
