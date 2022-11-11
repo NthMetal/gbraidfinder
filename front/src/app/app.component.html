@@ -278,12 +278,14 @@
                 <div class="row">
                   <mat-form-field class="col" appearance="fill">
                     <mat-label>Min HP</mat-label>
-                    <input matInput type="number" min="0" max="99" [(ngModel)]="settingsService.settings.minHP" name="minHP">
+                    <input matInput type="number" min="1" max="100" [(ngModel)]="settingsService.settings.minHP" name="minHP" style="text-align: center">
+                    <mat-slider min="1" max="100" step="1" value="1" tickInterval="1" [(ngModel)]="settingsService.settings.minHP" name="minHP" style="width: 100%"></mat-slider>
                     <mat-icon matSuffix>percent</mat-icon>
                   </mat-form-field>
                   <mat-form-field class="col" appearance="fill">
                     <mat-label>Max HP</mat-label>
-                    <input matInput type="number" min="1" max="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP">
+                    <input matInput type="number" min="1" max="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP" style="text-align: center">
+                    <mat-slider min="1" max="100" step="1" value="100" tickInterval="1" [(ngModel)]="settingsService.settings.maxHP" name="maxHP" style="width: 100%"></mat-slider>
                     <mat-icon matSuffix>percent</mat-icon>
                   </mat-form-field>
                 </div>
@@ -303,14 +305,16 @@
                 <h4 class="mt-4 mb-2 mx-0">Filter by Max Players.</h4>
                 <mat-form-field appearance="fill">
                   <mat-label>Maximum Players</mat-label>
-                  <input matInput type="number" min="0" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers">
+                  <input matInput type="number" min="0" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers" style="text-align: center">
+                  <mat-slider min="1" max="30" step="1" value="30" tickInterval="1" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers" style="width: 100%"></mat-slider>
                 </mat-form-field>
               </div>
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Filter by Min players.</h4>
                 <mat-form-field appearance="fill">
                   <mat-label>Minimum Players</mat-label>
-                  <input matInput type="number" min="0" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers">
+                  <input matInput type="number" min="1" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers" style="text-align: center">
+                  <mat-slider min="1" max="30" step="1" value="1" tickInterval="1" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers" style="width: 100%"></mat-slider>
                 </mat-form-field>
               </div>
             </div>
