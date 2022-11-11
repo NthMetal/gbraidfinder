@@ -61,14 +61,16 @@
                   <button mat-menu-item (click)="moveQuestRight(raid_data)"><mat-icon>keyboard_arrow_right</mat-icon>Move Right</button>
                   <button mat-menu-item (click)="clearAllRaidsInQuest(raid_data)"><mat-icon>clear_all</mat-icon>Clear</button>
                   <button mat-menu-item (click)="toggleQuestNotifications(raid_data)">
-                    <mat-icon *ngIf="!raid_data.notifications">notifications_active</mat-icon>
-                    <mat-icon *ngIf="raid_data.notifications">notifications_off</mat-icon>
-                    {{raid_data.notifications ? 'Disable' : 'Enable'}} Notifications
+                    <mat-icon *ngIf="settingsService.settings.questNotificationSettings[raid_data.quest_id] && settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">notifications_active</mat-icon>
+                    <mat-icon *ngIf="!settingsService.settings.questNotificationSettings[raid_data.quest_id] || !settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">notifications_off</mat-icon>
+                    <!-- {{raid_data.notifications ? 'Disable' : 'Enable'}} -->
+                    Notifications
                   </button>
                   <button mat-menu-item (click)="toggleQuestSound(raid_data)">
-                    <mat-icon *ngIf="!raid_data.sound">music_note</mat-icon>
-                    <mat-icon *ngIf="raid_data.sound">music_off</mat-icon>
-                    {{raid_data.sound ? 'Disable' : 'Enable'}} Sound
+                    <mat-icon *ngIf="settingsService.settings.questSoundSettings[raid_data.quest_id] && settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">music_note</mat-icon>
+                    <mat-icon *ngIf="!settingsService.settings.questSoundSettings[raid_data.quest_id] || !settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">music_off</mat-icon>
+                    <!-- {{raid_data.sound ? 'Disable' : 'Enable'}} -->
+                    Sound
                   </button>
                 </mat-menu>
               </div>
@@ -114,7 +116,7 @@
           <mat-text style="font-size: 0.8rem">{{raid.created_at | timeago}}</mat-text>
         </div>
         <div class="col-auto">
-          <mat-icon>{{raid.update && !settings.copyOnly ? 'exit_to_app' : 'content_copy'}}</mat-icon>
+          <mat-icon>{{raid.update && !settingsService.settings.copyOnly ? 'exit_to_app' : 'content_copy'}}</mat-icon>
         </div>
       </div>
       <div class="row">
@@ -236,7 +238,7 @@
             <div class="row mt-2 flex-row-vertical">
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Raid Settings</h4>
-                <mat-radio-group class="row" [(ngModel)]="settings.copyOnly" name="copyOnly">
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.copyOnly" name="copyOnly">
                   <div class="col mt-2 d-flex align-items-center">
                     <mat-radio-button class="mr-2" [value]="false">
                       Take me to the summon page&nbsp;&nbsp;
@@ -255,7 +257,7 @@
             <div class="row">
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Tab Settings</h4>
-                <mat-radio-group class="row" [(ngModel)]="settings.openInTab" name="openInTab" [disabled]="settings.copyOnly">
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.openInTab" name="openInTab" [disabled]="settingsService.settings.copyOnly">
                   <mat-radio-button class="col mt-2" value="_blank">Always open in a new tab</mat-radio-button>
                   <mat-radio-button class="col mt-2" value="gbfTAB" [matTooltip]="'Warning: using this option is sus because it sends the current website url to gbf'">Open in an existing tab</mat-radio-button>
                 </mat-radio-group>
@@ -264,7 +266,7 @@
             <div class="row">
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Duplicate Tweets</h4>
-                <mat-radio-group class="row" [(ngModel)]="settings.removeDuplicates" name="removeDuplicates" disabled>
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.removeDuplicates" name="removeDuplicates" disabled>
                   <mat-radio-button class="col mt-2" [value]="true">Filter</mat-radio-button>
                   <mat-radio-button class="col mt-2" [value]="false">Show</mat-radio-button>
                 </mat-radio-group>
@@ -276,12 +278,12 @@
                 <div class="row">
                   <mat-form-field class="col" appearance="fill">
                     <mat-label>Min HP</mat-label>
-                    <input matInput type="number" min="0" max="99" [(ngModel)]="settings.minHP" name="minHP">
+                    <input matInput type="number" min="0" max="99" [(ngModel)]="settingsService.settings.minHP" name="minHP">
                     <mat-icon matSuffix>percent</mat-icon>
                   </mat-form-field>
                   <mat-form-field class="col" appearance="fill">
                     <mat-label>Max HP</mat-label>
-                    <input matInput type="number" min="1" max="100" [(ngModel)]="settings.maxHP" name="maxHP">
+                    <input matInput type="number" min="1" max="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP">
                     <mat-icon matSuffix>percent</mat-icon>
                   </mat-form-field>
                 </div>
@@ -291,7 +293,7 @@
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Remove Raids after</h4>
                 <mat-form-field appearance="fill">
-                  <input matInput type="number" [(ngModel)]="settings.removeRaidsAfterSeconds" name="removeRaidsAfterSeconds">
+                  <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterSeconds" name="removeRaidsAfterSeconds">
                   <div matSuffix>Seconds</div>
                 </mat-form-field>
               </div>
@@ -301,21 +303,21 @@
                 <h4 class="mt-4 mb-2 mx-0">Filter by Max Players.</h4>
                 <mat-form-field appearance="fill">
                   <mat-label>Maximum Players</mat-label>
-                  <input matInput type="number" min="0" [(ngModel)]="settings.maxPlayers" name="maxPlayers">
+                  <input matInput type="number" min="0" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers">
                 </mat-form-field>
               </div>
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Filter by Min players.</h4>
                 <mat-form-field appearance="fill">
                   <mat-label>Minimum Players</mat-label>
-                  <input matInput type="number" min="0" [(ngModel)]="settings.minPlayers" name="minPlayers">
+                  <input matInput type="number" min="0" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers">
                 </mat-form-field>
               </div>
             </div>
             <div class="row flex-row-vertical">
               <div class="col">
                 <h4 class="mt-4 mb-2 mx-0">Theme</h4>
-                <mat-radio-group class="row" [(ngModel)]="settings.theme" name="theme" disabled>
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.theme" name="theme" disabled>
                   <mat-radio-button class="col mt-2" value="dark">Dark</mat-radio-button>
                   <mat-radio-button class="col mt-2" value="light">Light</mat-radio-button>
                 </mat-radio-group>
@@ -343,7 +345,20 @@
           <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
             <div class="row mt-2">
               <div class="col">
-                Todo: i'm lazy
+                <h4 class="mt-4 mb-2 mx-0">All Sounds</h4>
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.soundEnabled" name="soundEnabled">
+                  <mat-radio-button class="col mt-2" [value]="true">Enabled</mat-radio-button>
+                  <mat-radio-button class="col mt-2" [value]="false">Disabled</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col">
+                <h4 class="mt-4 mb-2 mx-0">All Notifications</h4>
+                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.notificationsEnabled" name="notificationsEnabled">
+                  <mat-radio-button class="col mt-2" [value]="true">Enabled</mat-radio-button>
+                  <mat-radio-button class="col mt-2" [value]="false">Disabled</mat-radio-button>
+                </mat-radio-group>
               </div>
             </div>
           </div>
