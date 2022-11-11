@@ -82,8 +82,8 @@ export class SocketioService {
       // rejectUnauthorized: false
     };
     // const url = '';
-    const url = 'http://a27afc9d69f9d4c869231eac09110c27-46112890.us-east-2.elb.amazonaws.com';
-    // const url = environment.production ? 'https://gbraidfinderapi.ogres.cc' : 'http://gbraidfinderapi.ogres.cc';
+    // const url = 'http://a27afc9d69f9d4c869231eac09110c27-46112890.us-east-2.elb.amazonaws.com';
+    const url = environment.production ? 'https://gbraidfinderapi.ogres.cc' : 'http://gbraidfinderapi.ogres.cc';
     console.log('connecting to socket', url);
     this.socket = Socket.io(url, configOptions);
 
