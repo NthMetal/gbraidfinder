@@ -217,13 +217,13 @@ export class AppComponent implements OnInit, OnDestroy {
       const maxPlayers = settings.maxPlayers === 0 ? 999 : settings.maxPlayers;
       const minPlayers = settings.minPlayers === 0 ? -1 : settings.minPlayers;
 
-      const found = this.raid_metadata.find(meta => meta.quest_id === raid.quest_id);
-      if (settings.questSoundSettings[raid.quest_id]?.soundOnUpdate) this.notificationService.playSound(raid);
-      if (settings.questNotificationSettings[raid.quest_id]?.notificationOnUpdate) this.notificationService.scheduleNotification(raid, found.quest_name_en);
-
       if (update.hp < settings.minHP || update.hp > settings.maxHP || players <= minPlayers || players > maxPlayers) {
         console.log(`removed raid ${raid.battleKey} > ${settings.minHP}<${update.hp}<=${settings.maxHP}?   ${minPlayers}<${players}<=${maxPlayers}?`)
         this.raids[raid.quest_id].splice(raidIndex, 1)
+      } else {
+        const found = this.raid_metadata.find(meta => meta.quest_id === raid.quest_id);
+        if (settings.questSoundSettings[raid.quest_id]?.soundOnUpdate) this.notificationService.playSound(raid);
+        if (settings.questNotificationSettings[raid.quest_id]?.notificationOnUpdate) this.notificationService.scheduleNotification(raid, found.quest_name_en);
       }
     });
 
@@ -240,6 +240,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.formChangesSubscription.unsubscribe();
   }
 
+  /**
+   * Open up a dialog from a given template
+   * @param templateRef dialog template to open up
+   */
   public openDialog(templateRef: TemplateRef<any>) {
     this.dialog.open(templateRef).afterOpened().subscribe(dialog => {
       try {
@@ -250,22 +254,45 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * toggles a raid boss on or off
+   * used in add raid dialog
+   * updates settings afterwards
+   * @param id quest id of the raid (ex '305241')
+   */
   public toggleRaid(id: string) {
     this.socketioService.toggleRaid(id);
     this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
     this.settingsService.updateSettings();
   }
 
+  /**
+   * Subscribes to a raid
+   * updates settings afterwards
+   * @param id quest id of the raid (ex '305241')
+   */
   public subscribeRaid(id: string) {
     this.socketioService.subscribeRaid(id);
+    this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
+    this.settingsService.updateSettings();
   }
 
+  /**
+   * Unsubscribes to a raid
+   * updates settings afterwards
+   * @param id quest id of the raid (ex '305241')
+   */
   public unsubscribeRaid(id: string) {
     this.socketioService.unsubscribeRaid(id);
     this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
     this.settingsService.updateSettings();
   }
 
+  /**
+   * When a tweeted raid is selected
+   * Either oopens up a window or copies battle key to clipboard depending on settings
+   * @param raid 
+   */
   public selectRaid(raid: any) {
     raid.selected = true;
     if (raid.update && !this.settingsService.settings.copyOnly) {
@@ -283,6 +310,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * moves a raid column to the left
+   * @param raid quest id of the raid
+   */
   public moveQuestLeft(raid: any) {
     const raidIndex = this.subscribedRaids.indexOf(raid);
     if (raidIndex < 1) return;
@@ -293,6 +324,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.settingsService.updateSettings();
   }
 
+  /**
+   * moves a raid column to the right
+   * @param raid quest id of the raid
+   */
   public moveQuestRight(raid: any) {
     const raidIndex = this.subscribedRaids.indexOf(raid);
     if (raidIndex > this.subscribedRaids.length - 2) return;
@@ -303,10 +338,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.settingsService.updateSettings();
   }
 
+  /**
+   * clears all the tweets in the raid column
+   * @param raid quest id of the raid
+   */
   public clearAllRaidsInQuest(raid: any) {
     this.raids[raid.quest_id] = [];
   }
 
+  /**
+   * toggles quest notifications for the specific quest
+   * @param raid quest id of the raid
+   */
   public toggleQuestNotifications(raid: any) {
     const settings = this.settingsService.settings;
     settings.questNotificationSettings[raid.quest_id] ?
@@ -318,6 +361,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.settingsService.updateSettings();
   }
 
+  /**
+   * toggles quest sounds for the specific quest
+   * @param raid quest id of the raid
+   */
   public toggleQuestSound(raid: any) {
     const settings = this.settingsService.settings;
     settings.questSoundSettings[raid.quest_id] ?

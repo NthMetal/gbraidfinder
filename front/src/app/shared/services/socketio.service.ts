@@ -81,52 +81,38 @@ export class SocketioService {
       // ciphers: undefined,
       // rejectUnauthorized: false
     };
-    // const url = '';
     // const url = 'http://a27afc9d69f9d4c869231eac09110c27-46112890.us-east-2.elb.amazonaws.com';
     const url = environment.production ? 'https://gbraidfinderapi.ogres.cc' : 'http://gbraidfinderapi.ogres.cc';
     console.log('connecting to socket', url);
     this.socket = Socket.io(url, configOptions);
 
-    // TEST/PROD
-    // this.socket = io('', configOptions );
-
-    // LOCAL
-    // this.socket = io('https://ec2-3-17-133-200.us-east-2.compute.amazonaws.com', configOptions );
-    // this.socket = io('http://localhost:8080', configOptions );
-
-    // const apiUrl = authenticationService.configData.API_URL;
-    // // const options = {
-    // //   secure: true
-    // // };
-    // // this.config = apiUrl.indexOf('localhost') > -1 ?
-    // //   { url: apiUrl, options: { ...options } } :
-
-    // //   { url: '', options: { path: `${apiUrl}/socket.io`, ...options } };
-    // const url = 'http://localhost:8083';
-    // this.socket = io(url, { path: `/socket.io` });
-    // // this.socket = io(url);
-    // console.log(this.socket);
-    // setInterval(() => {
-    // this.assetCreated('1234');
-    // }, 3000);
     this.socket.on('connect', () => {
       console.log('connected......................................');
       this.connected = true;
-    });
-    this.socket.on('event', function (data: any) {
-      console.log('evnet.............................', data);
     });
     this.socket.on('disconnect', function () {
       console.log('disconnected......................................');
     });
   }
 
+  /**
+   * subscribes to a specific raid
+   * subscribes to r305241 for tweeted raids and
+   * u305241 for raid updates
+   * @param id quest id of the raid (ex '305241')
+   */
   public subscribeRaid(id: string): void {
     this.subscribedRaids.next(this.subscribedRaids.getValue().add('r' + id));
     this.socket.emit('subscribe', 'r' + id);
     this.socket.emit('subscribe', 'u' + id);
   }
 
+  /**
+   * unsubscribes from a specific raid
+   * unsubscribes from r305241 for tweeted raids and
+   * u305241 for raid updates
+   * @param id quest id of the raid (ex '305241')
+   */
   public unsubscribeRaid(id: string): void {
     const currentSubbed = this.subscribedRaids.getValue();
     currentSubbed.delete('r' + id);
@@ -135,10 +121,18 @@ export class SocketioService {
     this.socket.emit('unsubscribe', 'u' + id);
   }
 
+  /**
+   * toggles a quest; Subscribes or unsubscribes depending
+   * @param id quest id of the raid (ex '305241')
+   */
   public toggleRaid(id: string): void {
     this.subscribedRaids.getValue().has('r' + id) ? this.unsubscribeRaid(id) : this.subscribeRaid(id);
   }
 
+  /**
+   * gets an observable that fires every time a raid is recieved
+   * @returns raids observable
+   */
   public getRaids(): Observable<any> {
     return this.fromEvent('raid').pipe(map((raidString: string) => {
       const split = raidString.split('|');
@@ -158,6 +152,10 @@ export class SocketioService {
     }));
   }
 
+  /**
+   * gets an observable that fires every time an update is recieved
+   * @returns updates observable
+   */
   public getUpdates(): Observable<any> {
     return this.fromEvent('update').pipe(map((updateString: string) => {
       const split = updateString.split('|');
@@ -176,19 +174,16 @@ export class SocketioService {
     }));
   }
 
+  /**
+   * creates a shared observable for a given socket event
+   * @param eventName socket event
+   * @returns shared observable
+   */
   public fromEvent(eventName: string): Observable<any> {
     this.subscribersCounter++;
     return new Observable((observer) => {
       this.socket.on(eventName, (data: any) => {
         const inflatedData = pako.inflate(data, { to: 'string' });
-        // console.log(
-        //   'bytes sent before: ', JSON.stringify(inflatedData).length,
-        //   'bytes sent after: ', (data as ArrayBuffer).byteLength,
-        //   'difference', JSON.stringify(inflatedData).length - (data as ArrayBuffer).byteLength,
-        //   'ratio', JSON.stringify(inflatedData).length / (data as ArrayBuffer).byteLength,
-        //   'trades', inflatedData.split(',').length
-        // );
-        // console.log(inflatedData);
         observer.next(inflatedData);
       });
     }).pipe(share());

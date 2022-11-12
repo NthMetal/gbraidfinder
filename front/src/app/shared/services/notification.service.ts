@@ -19,13 +19,14 @@ export class NotificationService {
      * Subscribe to notifications subject to show the notification
      * Lets us use rxjs pipe operators to modify how often notifications are shown
      */
-    this.notificationsSubject.pipe(throttleTime(100)).subscribe(notification => {
+    this.notificationsSubject.pipe(throttleTime(3000)).subscribe(notification => {
       this.showNotification(notification.raid, notification.questTitle);
     });
   }
 
   /**
    * Requests permission to show notifications
+   * wrapped in a try/catch because Notification object may not exist in some contexts
    */
   public requestNotificationPermission() {
     try {
@@ -46,18 +47,29 @@ export class NotificationService {
     this.notificationsSubject.next({raid, questTitle});
   }
 
+  /**
+   * shows a notification for a raid
+   * @param raid raid info, may include update
+   * @param questTitle quest title (ex Wings of Terror (Impossible)) to show
+   */
   private showNotification(raid: any, questTitle: string) {
     // ▰▱
     // [▇-]
     // █▒
+    /**
+     * Check if notifications are enabled
+     */
     if (!raid ||
       !this.settingsService.settings.notificationsEnabled ||
       !this.settingsService.settings.questNotificationSettings[raid.quest_id] ||
       !this.settingsService.settings.questNotificationSettings[raid.quest_id].enabled) return;
-      
+    
+    /**
+     * If notifications are enabled, request notification permission
+     */
     this.requestNotificationPermission();
 
-    if (this.currentNotification) this.currentNotification.close();
+    // if (this.currentNotification) this.currentNotification.close();
 
     const bodyMessage = !this.settingsService.settings.copyOnly && raid.update ? `Click to open raid in new tab. 🚪` : `Click to Copy 📋`;
     const bodyHPInfo = raid.update ? `${'▰'.repeat(Math.floor((+raid.update.hp)/5))}${'▱'.repeat(20 - Math.floor((+raid.update.hp)/5))}` : '';
@@ -68,6 +80,10 @@ export class NotificationService {
        silent: !!this.settingsService.settings.silentNotifications,
        requireInteraction: !!this.settingsService.settings.requireInteraction
     });
+    /**
+     * handles click event, opens raid in new tab or copies
+     * depending on the settings
+     */
     notification.onclick = (e) => {
       const tab = this.settingsService.settings.openInTab || '_blank';
       this.settingsService.settings.copyOnly ?
