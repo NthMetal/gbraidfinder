@@ -8,6 +8,7 @@ import { SettingsService } from './settings.service';
 export class NotificationService {
   notificationsSubject: Subject<{raid: any, questTitle: string}> = new Subject<{raid: any, questTitle: string}>();
   hasNotificationPermission = false;
+  currentNotification: Notification;
 
   /**
    * Initialize, inject settingsService
@@ -18,7 +19,7 @@ export class NotificationService {
      * Subscribe to notifications subject to show the notification
      * Lets us use rxjs pipe operators to modify how often notifications are shown
      */
-    this.notificationsSubject.pipe(throttleTime(5000)).subscribe(notification => {
+    this.notificationsSubject.pipe(throttleTime(100)).subscribe(notification => {
       this.showNotification(notification.raid, notification.questTitle);
     });
   }
@@ -56,11 +57,13 @@ export class NotificationService {
       
     this.requestNotificationPermission();
 
-    const bodyMessage = !this.settingsService.settings.copyOnly && raid.update ? `Click to open raid in new tab. 🚪 ${raid.battleKey}` : `Click to Copy 📋 ${raid.battleKey}`;
+    if (this.currentNotification) this.currentNotification.close();
+
+    const bodyMessage = !this.settingsService.settings.copyOnly && raid.update ? `Click to open raid in new tab. 🚪` : `Click to Copy 📋`;
     const bodyHPInfo = raid.update ? `${'▰'.repeat(Math.floor((+raid.update.hp)/5))}${'▱'.repeat(20 - Math.floor((+raid.update.hp)/5))}` : '';
     const bodyOtherInfo = raid.update ? ` ${raid.update.hp}%                 ${raid.update.players}                        ${raid.update.timeLeft}` : '';
-    const notification = new Notification(`${questTitle}`, {
-       body: `${bodyMessage}\n${bodyHPInfo}\n${bodyOtherInfo}`,
+    const notification = new Notification(`${questTitle} - ${raid.battleKey}`, {
+       body: `${bodyOtherInfo}\n${bodyHPInfo}\n${bodyMessage}`,
        image: `assets/big/${raid.quest_id}.jpg`,
        silent: !!this.settingsService.settings.silentNotifications,
        requireInteraction: !!this.settingsService.settings.requireInteraction
@@ -72,6 +75,7 @@ export class NotificationService {
       window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
       notification.close();
     };
+    this.currentNotification = notification;
  }
 
  /**

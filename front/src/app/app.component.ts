@@ -26,7 +26,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   formChangesSubscription: Subscription;
 
-  usersConnected = 0;
+  lastStatusRecievedAt: Date;
+  status: { 
+    raidStatus: {
+      tweetStatus: {
+        lastTweetRecievedAt?: Date,
+        lastTweetSourceRecievedAt?: Date
+      },
+      gbrStatus: (Date | null)[]
+    },
+    socketStatus: { active: boolean, usersConnected: number }
+  }
 
   raidSearch = '';
   raidSearchSubject = new Subject<string>();
@@ -160,9 +170,9 @@ export class AppComponent implements OnInit, OnDestroy {
      * usersConnected is just for monitoring, and might be inaccurate
      */
     this.socketioService.fromEvent('status').subscribe((status: string) => {
+      this.lastStatusRecievedAt = new Date();
       const parsed = JSON.parse(status);
-      this.usersConnected = parsed.usersConnected;
-      console.log('GOT STATUS', status);
+      this.status = parsed;
     });
     
     /**
