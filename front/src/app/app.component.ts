@@ -51,7 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   tabActive = true;
 
-  bitcoinAddressToDisplay = 'bc1qcrpyd6z5q7z3735y26psl2auc6jr97kjnurxsg';
+  public readonly bitcoinAddressToDisplay = 'bc1qcrpyd6z5q7z3735y26psl2auc6jr97kjnurxsg';
 
   constructor(
     private router: Router,
@@ -261,8 +261,9 @@ export class AppComponent implements OnInit, OnDestroy {
    * Open up a dialog from a given template
    * @param templateRef dialog template to open up
    */
-  public openDialog(templateRef: TemplateRef<any>) {
+  public openDialog(templateRef: TemplateRef<any>, infoDialog?: boolean) {
     this.dialog.open(templateRef).afterOpened().subscribe(dialog => {
+      if (infoDialog) this.settingsService.updateMaintinence();
       try {
         this.formChangesSubscription = this.settingsForm.form.valueChanges.subscribe(changes => {
           this.settingsService.updateSettings();

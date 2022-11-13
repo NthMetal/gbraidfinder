@@ -41,6 +41,13 @@ export class SettingsService {
     questNotificationSettings: {} as { [key: string]: { enabled: boolean, notificationOnUpdate: boolean}}
   }
 
+  public readonly maintinance = {
+    id: '024c82b0-f7a1-49c4-9d8a-d81092194805',
+    message: 'No Maintinence is currently scheduled',
+    icon: 'check',
+    notify: 1
+  }
+
   constructor() {
     /**
      * Get settings from local storage.
@@ -50,6 +57,10 @@ export class SettingsService {
      * Apply defaults if they're not already saved.
      */
     Object.assign(this.settings, savedSettings);
+
+
+    const savedMaintinence = JSON.parse(localStorage.getItem('maintinance') || '{}');
+    this.maintinance.notify = this.maintinance.id === savedMaintinence.id ? 0 : 1;
   }
 
 
@@ -58,6 +69,12 @@ export class SettingsService {
    */
   public updateSettings() {
     localStorage.setItem('settings', JSON.stringify(this.settings));
+  }
+
+  /** Update maintinence notification */
+  public updateMaintinence() {
+    this.maintinance.notify = 0;
+    localStorage.setItem('maintinance', JSON.stringify(this.maintinance));
   }
 
 }

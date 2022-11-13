@@ -33,8 +33,8 @@
         </a>
       </div>
       <div class="col-auto">
-        <button mat-icon-button (click)="openDialog(infoDialog)">
-          <mat-icon class="material-icons-outlined">info</mat-icon>
+        <button mat-icon-button (click)="openDialog(infoDialog, true)">
+          <mat-icon class="material-icons-outlined" [matBadge]="!settingsService.maintinance.notify ? '' : settingsService.maintinance.notify" matBadgeSize="small" matBadgeColor="warn">info</mat-icon>
         </button>
       </div>
       <div class="col-auto">
@@ -183,7 +183,11 @@
   <mat-dialog height="large">
     <div title>Info</div>
     <mat-card class="bg-2 mt-2"> For any questions or concerns you can contact me directly on discord: NthMetal#5000</mat-card>
-    <mat-card class="bg-2 my-3">
+    <mat-card class="bg-2 my-3 d-flex align-items-center">
+      <mat-icon class="me-3 material-icons-outlined"> {{settingsService.maintinance.icon }} </mat-icon>
+      {{ settingsService.maintinance.message }}
+    </mat-card>
+    <mat-card class="bg-2 my-3 d-flex align-items-center">
       <a href="https://github.com/NthMetal/gbraidfinder" target="_blank">
         <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
           <img src="assets/icons/github-logo.svg"/>
