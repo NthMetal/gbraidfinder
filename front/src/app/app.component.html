@@ -191,6 +191,23 @@
       </a>
       If you're interested in contributing or reporting bugs, visit the github!
     </mat-card>
+    <mat-card class="bg-2 my-3">
+      <div class="row">
+        <div class="col">
+          If you want to support the project consider sending some Bitcoin.
+          All donations go directly to server costs.
+        </div>
+      </div>
+      <div matRipple [matRippleCentered]="true" matRippleColor="#00000020" class="align-items-center bg-1 mx-3 mt-3 p-3 row" style="cursor: pointer;" (click)="copyTextToClipboard(bitcoinAddressToDisplay)">
+        <div class="col">
+          {{ bitcoinAddressToDisplay }}
+        </div>
+        <div class="col-auto">
+          <mat-icon>content_copy</mat-icon>
+        </div>
+      </div>
+      
+    </mat-card>
   </mat-dialog>
 </ng-template>
 

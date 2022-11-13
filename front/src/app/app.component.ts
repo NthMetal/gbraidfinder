@@ -51,6 +51,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   tabActive = true;
 
+  bitcoinAddressToDisplay = 'bc1qcrpyd6z5q7z3735y26psl2auc6jr97kjnurxsg';
+
   constructor(
     private router: Router,
     public socketioService: SocketioService,
@@ -338,7 +340,7 @@ export class AppComponent implements OnInit, OnDestroy {
       const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
       window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
     } else {
-      const result = this.notificationService.copyTextToClipboard(raid.battleKey);
+      const result = this.copyTextToClipboard(raid.battleKey);
       result ? this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 }) : 
       this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
       if (this.settingsService.settings.openInTab) {
@@ -413,6 +415,14 @@ export class AppComponent implements OnInit, OnDestroy {
     settings.questSoundSettings[raid.quest_id].enabled = !settings.questSoundSettings[raid.quest_id].enabled :
     settings.questSoundSettings[raid.quest_id] = { enabled: true, soundOnUpdate: false, sound: '' }
     this.settingsService.updateSettings();
+  }
+
+  /**
+   * Copies text to clipboard
+   * @param text text to copy to clipboard
+   */
+  public copyTextToClipboard(text: string) {
+    return this.notificationService.copyTextToClipboard(text);
   }
 
 }
