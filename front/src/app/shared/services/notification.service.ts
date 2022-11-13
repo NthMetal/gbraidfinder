@@ -85,10 +85,16 @@ export class NotificationService {
      * depending on the settings
      */
     notification.onclick = (e) => {
-      const tab = this.settingsService.settings.openInTab || '_blank';
-      this.settingsService.settings.copyOnly ?
-      this.copyTextToClipboard(raid.battleKey) : 
-      window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
+      raid.selected = true;
+      if (raid.update && !this.settingsService.settings.copyOnly) {
+        const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
+        window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
+      } else {
+        this.copyTextToClipboard(raid.battleKey);
+        if (this.settingsService.settings.openInTab) {
+          window.open(`https://game.granbluefantasy.jp/#quest/assist`, 'gbfTab');
+        }
+      }
       notification.close();
     };
     this.currentNotification = notification;

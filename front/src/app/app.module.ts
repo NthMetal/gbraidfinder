@@ -9,6 +9,7 @@ import { SharedModule } from './shared/shared.module';
 
 import { TimeagoModule } from 'ngx-timeago';
 import { DragulaModule } from 'ng2-dragula';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { DragulaModule } from 'ng2-dragula';
     BrowserAnimationsModule,
     SharedModule,
     MaterialModule,
+    NgxSliderModule,
     TimeagoModule.forRoot(),
     DragulaModule.forRoot()
   ],

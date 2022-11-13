@@ -28,14 +28,17 @@
       <div class="col-auto">
         <a href="https://github.com/NthMetal/gbraidfinder/issues" target="_blank">
           <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
-              <path fill="white" d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"></path>
-            </svg>
+            <img src="assets/icons/github-logo.svg"/>
           </button>
         </a>
       </div>
       <div class="col-auto">
-        <button mat-mini-fab color="primary" (click)="openDialog(settingsDialog)">
+        <button mat-icon-button (click)="openDialog(infoDialog)">
+          <mat-icon>info</mat-icon>
+        </button>
+      </div>
+      <div class="col-auto">
+        <button mat-mini-fab color="primary" (click)="openBottomSheet(settingsBottomSheet)">
           <mat-icon>settings</mat-icon>
         </button>
       </div>
@@ -172,6 +175,21 @@
   </mat-dialog>
 </ng-template>
 
+<ng-template #infoDialog>
+  <mat-dialog height="large">
+    <div title>Info</div>
+    <mat-card class="bg-2 mt-2"> For any questions or concerns you can contact me directly on discord: NthMetal#5000</mat-card>
+    <mat-card class="bg-2 my-3">
+      <a href="https://github.com/NthMetal/gbraidfinder" target="_blank">
+        <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
+          <img src="assets/icons/github-logo.svg"/>
+        </button>
+      </a>
+      If you're interested in contributing or reporting bugs, visit the github!
+    </mat-card>
+  </mat-dialog>
+</ng-template>
+
 <ng-template #raidDialog>
   <mat-dialog height="large">
     <div title>Add Raid</div>
@@ -257,185 +275,126 @@
   </mat-dialog>
 </ng-template>
 
-<ng-template #settingsDialog>
-  <mat-dialog>
-    <div title>Settings</div>
-    <form #settingsForm="ngForm" novalidate>
-      <mat-tab-group>
+<ng-template #settingsBottomSheet>
+  <form #settingsForm="ngForm" novalidate>
+    <!-- QuickJoin raid settings -->
+    <div class="ms-3 mt-2 font-0">RAID SETTINGS</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          Quick Join Raids
+        </div>
+        <div class="col-auto">
+          <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.copyOnly" name="copyOnly"></mat-slide-toggle>
+        </div>
+      </div>
+    </mat-card>
+    <!-- QuickJoin Options -->
+    <mat-card class="mt-1 bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          {{ settingsService.settings.copyOnly ? 'Copy and Open GBF' : 'Always open in new tab.' }}
+        </div>
+        <div class="col-auto">
+          <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.openInTab" name="openInTab"></mat-slide-toggle>
+        </div>
+      </div>
+    </mat-card>
+    <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
+      Clicking a raid will {{ settingsService.settings.copyOnly ? 'copy the battle key' : 'go to the summon select'}}
+      {{ settingsService.settings.copyOnly && settingsService.settings.openInTab ? 'and then open GBF' : '' }}
+      {{ !settingsService.settings.copyOnly ? settingsService.settings.openInTab ? 'in a new tab' : 'in an existing tab' : '' }}
+    </div>
 
-        <mat-tab>
-          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">casino</mat-icon> Misc </ng-template>
-          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
-            <div class="row mt-2 flex-row-vertical">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Raid Settings</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.copyOnly" name="copyOnly">
-                  <div class="col mt-2 d-flex align-items-center">
-                    <mat-radio-button class="mr-2" [value]="false">
-                      Take me to the summon page&nbsp;&nbsp;
-                    </mat-radio-button>
-                    <mat-icon>exit_to_app</mat-icon>
-                  </div>
-                  <div class="col mt-2 d-flex align-items-center">
-                    <mat-radio-button class="mr-2" [value]="true">
-                      Just copy the battle key&nbsp;&nbsp;
-                    </mat-radio-button>
-                    <mat-icon>content_copy</mat-icon>
-                  </div>
-                </mat-radio-group>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Tab Settings</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.openInTab" name="openInTab" [disabled]="settingsService.settings.copyOnly">
-                  <mat-radio-button class="col mt-2" value="_blank">Always open in a new tab</mat-radio-button>
-                  <mat-radio-button class="col mt-2" value="gbfTAB" [matTooltip]="'Warning: using this option is sus because it sends the current website url to gbf'">Open in an existing tab</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Duplicate Tweets</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.removeDuplicates" name="removeDuplicates" disabled>
-                  <mat-radio-button class="col mt-2" [value]="true">Filter</mat-radio-button>
-                  <mat-radio-button class="col mt-2" [value]="false">Show</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Filter by HP</h4>
-                <div class="row">
-                  <div class="col">
-                    <mat-label>Min HP</mat-label>
-                    <p style="text-align: center;">{{settingsService.settings.minHP}}%</p>
-                    <mat-slider thumbLabel min="0" max="100" step="1" value="0" [(ngModel)]="settingsService.settings.minHP" name="minHP" style="width: 100%"></mat-slider>
-                  </div>
-                  <div class="col">
-                    <mat-label>Max HP</mat-label>
-                    <p style="text-align: center;">{{settingsService.settings.maxHP}}%</p>
-                    <mat-slider thumbLabel min="1" max="100" step="1" value="100" [(ngModel)]="settingsService.settings.maxHP" name="maxHP" style="width: 100%"></mat-slider>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Remove Raids after</h4>
-                <mat-form-field appearance="fill">
-                  <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterSeconds" name="removeRaidsAfterSeconds">
-                  <div matSuffix>Seconds</div>
-                </mat-form-field>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Filter by Max Players.</h4>
-                <mat-label>Maximum Players</mat-label>
-                <p style="text-align: center;">{{settingsService.settings.maxPlayers}}</p>
-                <mat-slider thumbLabel min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.maxPlayers" name="maxPlayers" style="width: 100%"></mat-slider>
-              </div>
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Filter by Min players.</h4>
-                <mat-label>Minimum Players</mat-label>
-                <p style="text-align: center;">{{settingsService.settings.minPlayers}}</p>
-                <mat-slider thumbLabel min="0" max="30" step="1" value="0" tickInterval="1" [(ngModel)]="settingsService.settings.minPlayers" name="minPlayers" style="width: 100%"></mat-slider>
-              </div>
-            </div>
-            <div class="row flex-row-vertical">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">Theme</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.theme" name="theme" disabled>
-                  <mat-radio-button class="col mt-2" value="dark">Dark</mat-radio-button>
-                  <mat-radio-button class="col mt-2" value="light">Light</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
+    <!-- Removing Raids -->
+    <div class="ms-3 mt-4 font-0">Remove Raid Settings</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          <mat-form-field class="w-100">
+            <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterSeconds" name="removeRaidsAfterSeconds">
+            <mat-hint>Remove Raids after seconds</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="col">
+          <mat-form-field class="w-100">
+            <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterLimit" name="removeRaidsAfterLimit">
+            <mat-hint>Remove Raids if list has more than</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-card>
+    <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
+      Raids will be removed after {{settingsService.settings.removeRaidsAfterSeconds}} seconds or if there are {{settingsService.settings.removeRaidsAfterLimit}} raids on the list.
+    </div>
 
-          </div>
-          <!-- Theme
-          Language
-          column width
-          copy settings, copy paste only, go to raid when available
-          disable enhanced info
-          filter duplicate tweets
-          filter by hp
-          filter by people in raid
-        -->
-        </mat-tab>
+    <!-- Desktop Notifications -->
+    <div class="ms-3 mt-4 font-0">Global Notification Settings</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          Desktop Notifications
+        </div>
+        <div class="col-auto">
+          <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.notificationsEnabled" name="notificationsEnabled"></mat-slide-toggle>
+        </div>
+      </div>
+    </mat-card>
+    <!-- <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Desktop Notifications will appear for raids (must be enabled for chrome)</div> -->
 
-        <mat-tab>
-          <ng-template mat-tab-label> <mat-icon>notifications</mat-icon> Notification </ng-template>
-          <!-- Disable all desktop notifications
-          Disable all sound notifications
-          Sound volume?
-          hp threshold -->
-          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
-            <div class="row mt-2">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">All Sounds</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.soundEnabled" name="soundEnabled">
-                  <mat-radio-button class="col mt-2" [value]="true">Enabled</mat-radio-button>
-                  <mat-radio-button class="col mt-2" [value]="false">Disabled</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-            <div class="row mt-2">
-              <div class="col">
-                <h4 class="mt-4 mb-2 mx-0">All Notifications</h4>
-                <mat-radio-group class="row" [(ngModel)]="settingsService.settings.notificationsEnabled" name="notificationsEnabled">
-                  <mat-radio-button class="col mt-2" [value]="true">Enabled</mat-radio-button>
-                  <mat-radio-button class="col mt-2" [value]="false">Disabled</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-          </div>
-        </mat-tab>
-        
-        <mat-tab>
-          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">help</mat-icon> Help </ng-template>
-          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
-            <div class="row mt-2">
-              <div class="col">
-                Choose the raid you want by clicking the button on the top left
-              </div>
-            </div>
-            <div class="row mt-2">
-              <div class="col">
-                Extra raid info such as hp, players, etc. may not be available all the time
-              </div>
-            </div>
-            <div class="row mt-2">
-              <div class="col">
-                Site may go down unexpectedly.
-              </div>
-            </div>
-          </div>
-        </mat-tab>
-        
-        <mat-tab>
-          <ng-template mat-tab-label> <mat-icon class="example-tab-icon">info</mat-icon> About </ng-template>
-          <div class="mt-2" style="height: 20rem; width: calc(100% - 0.8rem);">
-            <div class="row">
-              <div class="col">
-                For any questions or concerns feel free to ping me on discord: NthMetal#5000
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                 <a style="color: lightblue" target="_blank" href="https://github.com/NthMetal/gbraidfinder">Github Repo Here</a><br/>
-                 <a style="color: lightblue" target="_blank" href="https://github.com/NthMetal/gbraidfinder/issues">Report Issues Here!</a>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                 Note: Updated raids to show up faster. Time since tweeted may not be accurate, but it should be faster than before.
-              </div>
-            </div>
-          </div>
-        </mat-tab>
-      </mat-tab-group>
-    </form>
-  </mat-dialog>
+    <!-- Sounds -->
+    <div class="ms-3 mt-4 font-0">Global Sound Settings</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          Sounds
+        </div>
+        <div class="col-auto">
+          <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.soundEnabled" name="soundEnabled"></mat-slide-toggle>
+        </div>
+      </div>
+    </mat-card>
+    <div class="ms-3 mt-1 font-0">Volume</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          <ngx-slider [(value)]="settingsService.settings.soundVolume" name="soundVolume" [options]="{
+            floor: 0,
+            ceil: 1,
+            step: 0.01
+          }"></ngx-slider>
+        </div>
+      </div>
+    </mat-card>
+    <!-- <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">sound notifications</div> -->
+
+    <!-- HP Filter -->
+    <div class="ms-3 mt-4 font-0">HP Filter</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          <ngx-slider [(value)]="settingsService.settings.minHP" [(highValue)]="settingsService.settings.maxHP" [options]="{
+            floor: 0,
+            ceil: 100
+          }"></ngx-slider>
+        </div>
+      </div>
+    </mat-card>
+    <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Only raids with HP between {{settingsService.settings.minHP}} and {{settingsService.settings.maxHP}} will be shown.</div>
+
+    <!-- Player Filter -->
+    <div class="ms-3 mt-4 font-0">Player Filter</div>
+    <mat-card class="bg-2">
+      <div class="row align-items-center">
+        <div class="col">
+          <ngx-slider [(value)]="settingsService.settings.minPlayers" [(highValue)]="settingsService.settings.maxPlayers" [options]="{
+            floor: 1,
+            ceil: 30,
+            ticksArray: [6, 18]
+          }"></ngx-slider>
+        </div>
+      </div>
+    </mat-card>
+    <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Only raids with {{settingsService.settings.minPlayers}} to {{settingsService.settings.maxPlayers}} players will be shown.</div>
+  </form>
 </ng-template>

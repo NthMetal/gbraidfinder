@@ -10,6 +10,7 @@ import { NgForm } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { NotificationService } from './shared/services/notification.service';
 import { SettingsService } from './shared/services/settings.service';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 @Component({
   selector: 'app-root',
@@ -54,6 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     public socketioService: SocketioService,
     private dialog: MatDialog,
+    private bottomSheet: MatBottomSheet,
     private metadataService: MetadataService,
     private snackBar: MatSnackBar,
     private dragulaService: DragulaService,
@@ -183,21 +185,34 @@ export class AppComponent implements OnInit, OnDestroy {
      * Also pops a raid from the list when tabbed out as to not increase list size
      */
     this.socketioService.getRaids().subscribe(raid => {
+      const settings = this.settingsService.settings;
       if (this.raids[raid.quest_id]) {
         this.raids[raid.quest_id].unshift(raid);
-        if (!this.tabActive && this.raids[raid.quest_id].length > 20) { this.raids[raid.quest_id].pop() }
       }
       else this.raids[raid.quest_id] = [raid];
 
-      const settings = this.settingsService.settings;
       const found = this.raid_metadata.find(meta => meta.quest_id === raid.quest_id);
       if (!settings.questSoundSettings[raid.quest_id]?.soundOnUpdate) this.notificationService.playSound(raid);
       if (!settings.questNotificationSettings[raid.quest_id]?.notificationOnUpdate) this.notificationService.scheduleNotification(raid, found.quest_name_en);
+      
+      /**
+       * Remove the last raid on the list if the tab is inactive and there are
+       * already more than 20 raids
+       * OR if there are more than the set limit
+       * also clears the set timeout for that raid.
+       */
+      if (
+        (!this.tabActive && this.raids[raid.quest_id].length > 20) || 
+        this.raids[raid.quest_id].length > settings.removeRaidsAfterLimit
+      ) {
+        const removedRaid = this.raids[raid.quest_id].pop();
+        if (removedRaid.timeout) clearTimeout(removedRaid.timeout);
+      }
 
-      setTimeout(() => {
+      raid.timeout = setTimeout(() => {
         const index = this.raids[raid.quest_id].indexOf(raid);
         if (index >= 0) this.raids[raid.quest_id].splice(index, 1);
-      }, 1000 * this.settingsService.settings.removeRaidsAfterSeconds);
+      }, 1000 * settings.removeRaidsAfterSeconds);
     });
 
     /**
@@ -217,7 +232,7 @@ export class AppComponent implements OnInit, OnDestroy {
       const maxPlayers = settings.maxPlayers === 0 ? 999 : settings.maxPlayers;
       const minPlayers = settings.minPlayers === 0 ? -1 : settings.minPlayers;
 
-      if (update.hp < settings.minHP || update.hp > settings.maxHP || players <= minPlayers || players > maxPlayers) {
+      if (update.hp < settings.minHP || update.hp > settings.maxHP || players < minPlayers || players > maxPlayers) {
         console.log(`removed raid ${raid.battleKey} > ${settings.minHP}<${update.hp}<=${settings.maxHP}?   ${minPlayers}<${players}<=${maxPlayers}?`)
         this.raids[raid.quest_id].splice(raidIndex, 1)
       } else {
@@ -252,6 +267,30 @@ export class AppComponent implements OnInit, OnDestroy {
         });
       } catch (error) { }
     });
+  }
+
+  /**
+   * Open up a bottom sheet from a given template
+   * @param templateRef bottom sheet template to open up
+   */
+  public openBottomSheet(templateRef: TemplateRef<any>) {
+    const bottomSheet = this.bottomSheet.open(templateRef)
+    bottomSheet.afterOpened().subscribe(bottomSheet => {
+      try {
+        this.formChangesSubscription = this.settingsForm.form.valueChanges.subscribe(changes => {
+          this.settingsService.updateSettings();
+        });
+      } catch (error) { }
+    });
+    bottomSheet.backdropClick().subscribe(() => this.settingsService.updateSettings());
+  }
+
+  /**
+   * Closes the bottom sheet
+   */
+  public closeBottomSheet() {
+    this.bottomSheet.dismiss();
+    this.settingsService.updateSettings();
   }
 
   /**
@@ -296,12 +335,15 @@ export class AppComponent implements OnInit, OnDestroy {
   public selectRaid(raid: any) {
     raid.selected = true;
     if (raid.update && !this.settingsService.settings.copyOnly) {
-      const tab = this.settingsService.settings.openInTab || '_blank';
+      const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
       window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
     } else {
       const result = this.notificationService.copyTextToClipboard(raid.battleKey);
       result ? this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 }) : 
       this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
+      if (this.settingsService.settings.openInTab) {
+        window.open(`https://game.granbluefantasy.jp/#quest/assist`, 'gbfTab');
+      }
       // navigator.clipboard.writeText(raid.battleKey).then(() => {
       //   this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 });
       // }, () => {

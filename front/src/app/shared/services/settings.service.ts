@@ -15,15 +15,17 @@ export class SettingsService {
     // display: 'vertical',
     // columnWidth: 20,
     // language: 'EN',
-    removeRaidsAfterSeconds: 120,
+    removeRaidsAfterSeconds: 5400, // 1 hour 30 mins (time limit for most raids)
+    removeRaidsAfterLimit: 10,
 
     copyOnly: false,
+    openInTab: true,
+
     removeDuplicates: false,
     minHP: 0,
     maxHP: 100,
     minPlayers: 0,
     maxPlayers: 0,
-    openInTab: '_blank',
     theme: 'dark',
 
     // Sound Settings
