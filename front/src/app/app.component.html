@@ -83,7 +83,7 @@
             <mat-divider class="mb-1"></mat-divider>
             <div class="px-2" style="overflow-y: scroll; height: calc(100% - 3.5rem);">
               <!-- Each Raid Card was put in an ng template for a feature in the future -->
-              <div style="overflow: hidden; height: calc(100% - 1rem);">
+              <div style="height: calc(100% - 1rem);">
                 <ng-container *ngFor="let raid of raids[raid_data.quest_id]">
                   <ng-container *ngTemplateOutlet="raidCard; context: {$implicit: raid}"></ng-container>
                 </ng-container>
