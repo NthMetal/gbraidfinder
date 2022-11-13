@@ -24,8 +24,8 @@ export class SettingsService {
     removeDuplicates: false,
     minHP: 0,
     maxHP: 100,
-    minPlayers: 0,
-    maxPlayers: 0,
+    minPlayers: 1,
+    maxPlayers: 30,
     theme: 'dark',
 
     // Sound Settings
