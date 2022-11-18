@@ -86,7 +86,6 @@ export class GBR {
 
     private handleUpdates() {
         this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
-            console.log('getting raid info for ', battleKey);
             const updateResult: any = await this.getRaidInfo(battleKey);
             this.lastUpdateProcessedAt = new Date();
             if (updateResult.status === 'success') {

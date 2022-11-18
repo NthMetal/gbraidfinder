@@ -42,9 +42,9 @@ export class SettingsService {
   }
 
   public readonly maintinance = {
-    id: '024c82b0-f7a1-49c4-9d8a-d81092194805',
-    message: 'No Maintinence is currently scheduled',
-    icon: 'check',
+    id: '3766f564-d561-45d2-b184-c25d114263c5',
+    message: `Raidfinder will go down for about 10minutes at ${new Date(1668794400000)}` ,
+    icon: 'priority_high',
     notify: 1
   }
 
