@@ -43,8 +43,8 @@ export class SettingsService {
 
   public readonly maintinance = {
     id: '3766f564-d561-45d2-b184-c25d114263c5',
-    message: `Raidfinder will go down for about 10minutes at ${new Date(1668794400000)}` ,
-    icon: 'priority_high',
+    message: `Maintinance complete. No further downtime scheduled.` ,
+    icon: 'check',
     notify: 1
   }
 
