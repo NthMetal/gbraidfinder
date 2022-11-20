@@ -95,6 +95,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const levelTopics = topics.filter(topic => this.isRaidTopic(topic));
     const topicMetadata = await this.admin.fetchTopicMetadata({ topics: [levelTopics[0]] });
     const partitionsPerTopic = topicMetadata.topics[0].partitions.length;
+    console.log('connected clients: ', numConnectedClients, 'partitions per topic: ', partitionsPerTopic);
     if (numConnectedClients >= partitionsPerTopic) {
       const newPartitionCount = numConnectedClients === partitionsPerTopic ? numConnectedClients + 1 : numConnectedClients;
       console.log('Creating partition for new consumer', levelTopics.map(topic => ({topic, count: newPartitionCount })));
