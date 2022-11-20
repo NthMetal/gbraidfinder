@@ -69,8 +69,9 @@ export class TwitterSource {
             // const testmeta = [{ "element": "dark", "tweet_name_en": "Lvl 150 Proto Bahamut", "tweet_name_jp": "Lv150 プロトバハムート", "quest_name_en": "Wings of Terror (Impossible)","quest_name_jp": "邂逅、黒銀の翼ＨＬ","quest_id": "301061","level": "101","impossible": 2,"difficulty": "6","stage_id": "12061","thumbnail_image": "high_proto_bahamut" }]
             // console.log('actual: ', this.configService.config.raidmetadata.length, 'real: ', testmeta);
             this.configService.config.raidmetadata.forEach((raid, index) => {
+                const _this = this;
                 setTimeout(() => {
-                    wss.send(this.createSubscription(raid, index))
+                    wss.send(_this.createSubscription(raid, index))
                     this.subscribedRaids.push(raid.quest_id);
                 }, index * 250);
             });
