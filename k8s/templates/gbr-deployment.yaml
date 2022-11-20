@@ -29,8 +29,16 @@ spec:
         ports:
         - name: "p9222"
           containerPort: 9222
-        - name: "p3001"
-          containerPort: 3001
+        volumeMounts:
+          - mountPath: /usr/src/app/config
+            name: config-secret
+      volumes:
+        - name: config-secret
+          secret:
+            secretName: config-secret
+            items:
+            - key: config.json
+              path: config.json
 ---
 apiVersion: v1
 kind: Service
@@ -44,8 +52,4 @@ spec:
       protocol: TCP
       port: 9222
       targetPort: 9222
-    - name: "p3000"
-      protocol: TCP
-      port: 3001
-      targetPort: 3001
 {{- end }}

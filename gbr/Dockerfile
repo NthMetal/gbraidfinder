@@ -31,6 +31,5 @@ ENV NODE_ENV=prod
 RUN npm run build
 
 # Start the server using the production build
-EXPOSE 3001
 EXPOSE 9222
 CMD [ "node", "dist/main.js" ]

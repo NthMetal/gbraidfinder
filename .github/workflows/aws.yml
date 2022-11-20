@@ -28,15 +28,17 @@ name: Deploy Backend to ECS
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "prime" ]
     paths:
-      - back/**
+      - gbdist/**
       - gbr/**
+      - gbsource/**
 
 env:
   AWS_REGION: us-east-2                                      # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY_RAIDFINDER: raidfinder-containers           # set this to your Amazon ECR repository name
+  ECR_REPOSITORY_GBDIST: gbdist-containers           # set this to your Amazon ECR repository name
   ECR_REPOSITORY_GBR: gbr-containers                         # set this to your Amazon ECR repository name
+  ECR_REPOSITORY_GBSOURCE: gbsource-containers                         # set this to your Amazon ECR repository name
 
 permissions:
   contents: read
@@ -53,10 +55,12 @@ jobs:
       id: filter
       with:
         filters: |
-          back:
-            - 'back/**'
+          gbdist:
+            - 'gbdist/**'
           gbr:
             - 'gbr/**'
+          gbsource:
+            - 'gbsource/**'
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -69,20 +73,20 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push raidfinder to Amazon ECR
-      id: build-raidfinder-image
+    - name: Build, tag, and push gbdist to Amazon ECR
+      id: build-gbdist-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-      if: steps.filter.outputs.back == 'true'
+      if: steps.filter.outputs.gbdist == 'true'
       run: |
         # Build a docker container and
         # push it to ECR so that it can
         # be deployed to ECS.
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:latest -t $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG ./back
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_RAIDFINDER:$IMAGE_TAG"
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GBDIST:latest -t $ECR_REGISTRY/$ECR_REPOSITORY_GBDIST:$IMAGE_TAG ./gbdist
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBDIST:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBDIST:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_GBDIST:$IMAGE_TAG"
     
     - name: Build, tag, and push gbr to Amazon ECR
       id: build-gbr-image
@@ -98,3 +102,18 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBR:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBR:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_GBR:$IMAGE_TAG"
+    
+    - name: Build, tag, and push gbsource to Amazon ECR
+      id: build-gbsource-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      if: steps.filter.outputs.gbsource == 'true'
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:latest -t $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:$IMAGE_TAG ./gbsource
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:$IMAGE_TAG"

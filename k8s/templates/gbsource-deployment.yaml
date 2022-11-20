@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbsource
+  labels:
+    app: gbsource
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gbsource
+  template:
+    metadata:
+      labels:
+        app: gbsource
+    spec:
+      containers:
+      - name: gbsource
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbsource-containers:latest
+        volumeMounts:
+          - mountPath: /usr/src/app/config
+            name: config-secret
+      volumes:
+        - name: config-secret
+          secret:
+            secretName: config-secret
+            items:
+            - key: config.json
+              path: config.json
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: gbsource-service
+# spec:
+#   selector:
+#     app: gbsource
