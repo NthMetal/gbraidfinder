@@ -16,7 +16,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     private readonly configService: ConfigService
   ) {
     this.kafka = new Kafka({
-      clientId: `gbr-${uuidv4()}`,
+      clientId: `gbr-${this.appService.getAccount().rank}-${uuidv4()}`,
       brokers: this.configService.config.redpandaBrokers
     });
     this.producer = this.kafka.producer({ allowAutoTopicCreation: true });
