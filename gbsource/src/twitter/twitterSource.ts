@@ -46,7 +46,7 @@ export class TwitterSource {
     private errors: Subject<string> = new Subject();
     private initialized: Subject<boolean> = new Subject();
 
-    subscribedRaids = [];
+    subscribedRaids;
 
     createSubscription: (raid, index) => string
 
@@ -56,8 +56,8 @@ export class TwitterSource {
         createSubscription: (raid, index) => string
     ) {
         this.sourceUrl = sourceUrl;
-        this.connect();
         this.createSubscription = createSubscription || (() => undefined)
+        this.connect();
     }
 
     private connect() {
@@ -69,9 +69,8 @@ export class TwitterSource {
             // const testmeta = [{ "element": "dark", "tweet_name_en": "Lvl 150 Proto Bahamut", "tweet_name_jp": "Lv150 プロトバハムート", "quest_name_en": "Wings of Terror (Impossible)","quest_name_jp": "邂逅、黒銀の翼ＨＬ","quest_id": "301061","level": "101","impossible": 2,"difficulty": "6","stage_id": "12061","thumbnail_image": "high_proto_bahamut" }]
             // console.log('actual: ', this.configService.config.raidmetadata.length, 'real: ', testmeta);
             this.configService.config.raidmetadata.forEach((raid, index) => {
-                const _this = this;
                 setTimeout(() => {
-                    wss.send(_this.createSubscription(raid, index))
+                    wss.send(this.createSubscription(raid, index))
                     this.subscribedRaids.push(raid.quest_id);
                 }, index * 250);
             });
@@ -101,6 +100,7 @@ export class TwitterSource {
          * Check if all the topics exist, add a new one if it doesn't
          */
         this.configService.configBehaviorSubject.subscribe(async config => {
+            if (!this.subscribedRaids) return;
             console.log('config updated');
             config.raidmetadata.forEach((metadata, index) => {
                 if (!this.subscribedRaids.includes(metadata.quest_id)) {
