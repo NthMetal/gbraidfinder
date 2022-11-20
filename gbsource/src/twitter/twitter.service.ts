@@ -34,11 +34,25 @@ export class TwitterService implements OnModuleInit {
         /**
          * Connect to another twitter source
          */
-        const twitterSource = new TwitterSource('wss://gbf-twitter-anycable.herokuapp.com/cable', this.configService);
+        const twitterSource = new TwitterSource('wss://gbf-twitter-anycable.herokuapp.com/cable', this.configService, (raid, index) => {
+            const subscribe = {
+                "command": "subscribe",
+                "identifier": `{\"channel\":\"RescueChannel\",\"monster_name\":\"${raid.tweet_name_jp}\",\"column_id\":\"${index}\"}`
+              };
+              return JSON.stringify(subscribe);
+        });
         twitterSource.getTweets().subscribe(tweetSource => {
             this.tweetSources.next(tweetSource);
             this.tweetStatus.lastTweetSourceRecievedAt = new Date();
         });
+
+        // const twitterSource2 = new TwitterSource('wss://gbf-raidfinder-tw.herokuapp.com/ws/raids?keepAlive=true', this.configService, (raid, index) => {;
+        //       return `1a140a12${raid.quest_name_jp}`;
+        // });
+        // twitterSource.getTweets().subscribe(tweetSource => {
+        //     this.tweetSources.next(tweetSource);
+        //     this.tweetStatus.lastTweetSourceRecievedAt = new Date();
+        // });
         /**
          * Connect directly to twitter
          * Create twitter object

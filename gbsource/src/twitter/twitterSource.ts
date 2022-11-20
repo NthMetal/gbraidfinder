@@ -46,38 +46,38 @@ export class TwitterSource {
     private errors: Subject<string> = new Subject();
     private initialized: Subject<boolean> = new Subject();
 
-    subscribedRaidCount = 0;
+    subscribedRaids = [];
+
+    createSubscription: (raid, index) => string
 
     constructor(
         sourceUrl: string,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        createSubscription: (raid, index) => string
     ) {
         this.sourceUrl = sourceUrl;
         this.connect();
+        this.createSubscription = createSubscription || (() => undefined)
     }
 
     private connect() {
         const wss = new WebSocket(this.sourceUrl);
         wss.on('open', open => {
             this.reconnectionAttempts = 0;
-            this.subscribedRaidCount = 0;
+            this.subscribedRaids = [];
             console.log('Connecting twitter source')
             // const testmeta = [{ "element": "dark", "tweet_name_en": "Lvl 150 Proto Bahamut", "tweet_name_jp": "Lv150 プロトバハムート", "quest_name_en": "Wings of Terror (Impossible)","quest_name_jp": "邂逅、黒銀の翼ＨＬ","quest_id": "301061","level": "101","impossible": 2,"difficulty": "6","stage_id": "12061","thumbnail_image": "high_proto_bahamut" }]
             // console.log('actual: ', this.configService.config.raidmetadata.length, 'real: ', testmeta);
-            // TODO: Abstract this part raidMetadata
             this.configService.config.raidmetadata.forEach((raid, index) => {
                 setTimeout(() => {
-                    const subscribe = {
-                      "command": "subscribe",
-                      "identifier": `{\"channel\":\"RescueChannel\",\"monster_name\":\"${raid.tweet_name_jp}\",\"column_id\":\"${index}\"}`
-                    };
-                    wss.send(JSON.stringify(subscribe));
+                    wss.send(this.createSubscription(raid, index))
+                    this.subscribedRaids.push(raid.quest_id);
                 }, index * 250);
             });
         });
         wss.on('message', data => {
             const message = JSON.parse(data.toString());
-            if (message.type === 'confirm_subscription') console.log('Subscribed to', ++this.subscribedRaidCount, 'out of', this.configService.config.raidmetadata.length);
+            if (message.type === 'confirm_subscription') console.log('Subscribed to', this.subscribedRaids.length, 'out of', this.configService.config.raidmetadata.length);
             if (!message.type) {
                 this.tweetSource.next(message);
             };
@@ -93,6 +93,19 @@ export class TwitterSource {
         wss.on('close', error => {
             console.log('twitter source close');
             this.reconnect();
+        });
+
+        /**
+         * When the config is first loaded, or updated
+         * Check if all the topics exist, add a new one if it doesn't
+         */
+        this.configService.configBehaviorSubject.subscribe(async config => {
+            console.log('config updated');
+            config.raidmetadata.forEach((metadata, index) => {
+                if (!this.subscribedRaids.includes(metadata.quest_id)) {
+                    wss.send(this.createSubscription(metadata, this.subscribedRaids.length + index))
+                }
+            });
         });
     }
 

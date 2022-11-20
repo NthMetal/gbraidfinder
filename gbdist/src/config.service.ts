@@ -1,30 +1,35 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as fs from 'fs';
+import { BehaviorSubject } from 'rxjs';
+
+type Config = {
+    twittertokens: string[],
+    redpandaBrokers: string[],
+    raidmetadata: { 
+        level:  string,
+        element: string,
+        tweet_name_alt: string[],
+        tweet_name_en: string,
+        tweet_name_jp: string,
+        quest_name_en: string,
+        quest_name_jp: string,
+        quest_id: string,
+        impossible: number,
+        difficulty: string,
+        stage_id: string,
+        thumbnail_image: string
+    }[]
+}
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
     private readonly configFile = 'config/config.json';
-    public config: {
-        twittertokens: string[],
-        redpandaBrokers: string[],
-        raidmetadata: { 
-            level:  string,
-            element: string,
-            tweet_name_alt: string[],
-            tweet_name_en: string,
-            tweet_name_jp: string,
-            quest_name_en: string,
-            quest_name_jp: string,
-            quest_id: string,
-            impossible: number,
-            difficulty: string,
-            stage_id: string,
-            thumbnail_image: string
-        }[]
-    };
+    public configBehaviorSubject: BehaviorSubject<Config>;
+    public config: Config;
 
     constructor() {
         this.config = this.loadConfig();
+        this.configBehaviorSubject = new BehaviorSubject(this.config);
         console.log('loaded config', this.config);
     }
     
@@ -33,9 +38,13 @@ export class ConfigService implements OnModuleInit {
          * Watch config file for changes
          */
         fs.watch(this.configFile, event => {
+            console.log('file change detected', event);
             if (event === 'change') {
-                this.config = this.loadConfig();
-                console.log('loaded new config', this.config);
+                const loadedConfig = this.loadConfig();
+                if (loadedConfig) {
+                    this.config = loadedConfig;
+                    this.configBehaviorSubject.next(this.config);
+                }
             }
         });
     }
@@ -49,7 +58,7 @@ export class ConfigService implements OnModuleInit {
             const config = fs.readFileSync(this.configFile);
             return JSON.parse(config.toString());
         } catch (error) {
-            return {};
+            return undefined;
         }
     }
 

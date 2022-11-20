@@ -38,10 +38,13 @@ export class ConfigService implements OnModuleInit {
          * Watch config file for changes
          */
         fs.watch(this.configFile, event => {
+            console.log('file change detected', event);
             if (event === 'change') {
-                this.config = this.loadConfig();
-                this.configBehaviorSubject.next(this.config);
-                console.log('loaded new config', this.config);
+                const loadedConfig = this.loadConfig();
+                if (loadedConfig) {
+                    this.config = loadedConfig;
+                    this.configBehaviorSubject.next(this.config);
+                }
             }
         });
     }
@@ -55,7 +58,7 @@ export class ConfigService implements OnModuleInit {
             const config = fs.readFileSync(this.configFile);
             return JSON.parse(config.toString());
         } catch (error) {
-            return {};
+            return undefined;
         }
     }
 
