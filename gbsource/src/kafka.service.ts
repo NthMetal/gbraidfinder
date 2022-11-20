@@ -89,7 +89,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
       if (!topics.includes('member_events')) topicsToCreate.push({topic: 'member_events' });
 
       console.log('config updated creating topics: ', topicsToCreate);
-      await this.admin.createTopics({
+      if (topicsToCreate.length) await this.admin.createTopics({
         topics: topicsToCreate
       });
     });

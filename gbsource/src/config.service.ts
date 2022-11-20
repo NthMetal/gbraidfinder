@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { BehaviorSubject } from 'rxjs';
 import * as fs from 'fs';
-import * as gaze from 'gaze';
 
 type Config = {
     twittertokens: string[],
@@ -36,21 +35,15 @@ export class ConfigService implements OnModuleInit {
 
     onModuleInit() {
         /**
-         * Watch config file for changes
+         * Poll config file for changes
          */
-        const _this = this;
-        gaze(this.configFile, {}, function (err, watcher) {
-            console.log('watching: ', watcher.watched());
-            // this is gaze watcher in this context
-            this.on('changed', (filepath) => {
-                console.log(filepath, 'was changed');
-                const loadedConfig = _this.loadConfig();
-                if (loadedConfig) {
-                    _this.config = loadedConfig;
-                    _this.configBehaviorSubject.next(_this.config);
-                }
-            })
-        });
+        setInterval(() => {
+            const loadedConfig = this.loadConfig();
+            if (loadedConfig) {
+                this.config = loadedConfig;
+                this.configBehaviorSubject.next(this.config);
+            }
+        }, 1000 * 60 * 1);
     }
 
     /**
