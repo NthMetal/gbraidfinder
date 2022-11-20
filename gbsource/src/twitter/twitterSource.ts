@@ -77,7 +77,7 @@ export class TwitterSource {
         });
         wss.on('message', data => {
             const message = JSON.parse(data.toString());
-            if (message.type === 'confirm_subscription') console.log('Subscribed to', this.subscribedRaids.length, 'out of', this.configService.config.raidmetadata.length);
+            if (message.type === 'confirm_subscription') console.log('Subscribed to', this.subscribedRaids.length+1, 'out of', this.configService.config.raidmetadata.length);
             if (!message.type) {
                 this.tweetSource.next(message);
             };
