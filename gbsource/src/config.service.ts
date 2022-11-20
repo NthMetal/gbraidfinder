@@ -35,15 +35,16 @@ export class ConfigService implements OnModuleInit {
 
     onModuleInit() {
         /**
-         * Poll config file for changes
+         * Poll config file for changes every 30mins
          */
         setInterval(() => {
+            console.log('polling config for changes');
             const loadedConfig = this.loadConfig();
             if (loadedConfig) {
                 this.config = loadedConfig;
                 this.configBehaviorSubject.next(this.config);
             }
-        }, 1000 * 60 * 1);
+        }, 1000 * 60 * 30);
     }
 
     /**

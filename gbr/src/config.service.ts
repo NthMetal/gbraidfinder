@@ -1,12 +1,12 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import * as fs from 'fs';
 import { BehaviorSubject } from 'rxjs';
+import * as fs from 'fs';
 
 type Config = {
     twittertokens: string[],
     redpandaBrokers: string[],
-    raidmetadata: { 
-        level:  string,
+    raidmetadata: {
+        level: string,
         element: string,
         tweet_name_alt: string[],
         tweet_name_en: string,
@@ -32,21 +32,19 @@ export class ConfigService implements OnModuleInit {
         this.configBehaviorSubject = new BehaviorSubject(this.config);
         console.log('loaded config', this.config);
     }
-    
+
     onModuleInit() {
         /**
-         * Watch config file for changes
+         * Poll config file for changes every 30mins
          */
-        fs.watch(this.configFile, event => {
-            console.log('file change detected', event);
-            if (event === 'change') {
-                const loadedConfig = this.loadConfig();
-                if (loadedConfig) {
-                    this.config = loadedConfig;
-                    this.configBehaviorSubject.next(this.config);
-                }
+        setInterval(() => {
+            console.log('polling config for changes');
+            const loadedConfig = this.loadConfig();
+            if (loadedConfig) {
+                this.config = loadedConfig;
+                this.configBehaviorSubject.next(this.config);
             }
-        });
+        }, 1000 * 60 * 30);
     }
 
     /**
