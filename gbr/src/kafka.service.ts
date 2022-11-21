@@ -42,7 +42,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const topicsToSubscribe = levelTopics.filter(levelTopic => +levelTopic.slice(1) <= account.rank);
 
     console.log('subscribing to ', topicsToSubscribe);
-    await this.consumer.subscribe({ fromBeginning: false, topics: topicsToSubscribe });
+    await this.consumer.subscribe({ fromBeginning: true, topics: topicsToSubscribe });
     // await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
     return await this.consumer.run({
       autoCommit: true,
