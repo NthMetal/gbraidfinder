@@ -1,5 +1,6 @@
 import { Injectable, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
-import { Admin, Consumer, Kafka, Producer } from 'kafkajs';
+import { Cluster } from '@nestjs/microservices/external/kafka.interface';
+import { Admin, Consumer, GroupMember, GroupMemberAssignment, GroupState, Kafka, Producer, AssignerProtocol } from 'kafkajs';
 import { v4 as uuidv4 } from 'uuid';
 import { AppService } from './app.service';
 import { ConfigService } from './config.service';
@@ -20,7 +21,74 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
       brokers: this.configService.config.redpandaBrokers
     });
     this.producer = this.kafka.producer({ allowAutoTopicCreation: true });
-    this.consumer = this.kafka.consumer({ groupId: 'gbr', allowAutoTopicCreation: true });
+    this.consumer = this.kafka.consumer({ 
+      groupId: 'gbr',
+      allowAutoTopicCreation: true,
+      partitionAssigners: [
+        (config: {
+          cluster: Cluster
+          groupId: string
+        }) => {
+          /** 
+           * Slightly modified version of round robin assiner that assigns topics to only group members with level less than or equal to topic level
+           * valid group members are assigned to topics in a round robin way
+           */
+          const assign: (group: { members: GroupMember[]; topics: string[] }) => Promise<GroupMemberAssignment[]> = async (group) => {
+            const membersCount = group.members.length
+            const sortedMembers = group.members.map(({ memberId }) => memberId).sort()
+            const assignment = {}
+        
+            const topicsPartitions = group.topics.flatMap(topic => {
+              const partitionMetadata = config.cluster.findTopicPartitionMetadata(topic)
+              return partitionMetadata.map(m => ({ topic: topic, partitionId: m.partitionId }))
+            })
+        
+            topicsPartitions.forEach((topicPartition, i) => {
+              const validAssignees = sortedMembers.filter(member => +topicPartition.topic.slice(1) <= +member.split('-')[1])
+              const assignee = validAssignees[i % validAssignees.length]
+              if (!assignment[assignee]) {
+                assignment[assignee] = Object.create(null)
+              }
+        
+              if (!assignment[assignee][topicPartition.topic]) {
+                assignment[assignee][topicPartition.topic] = []
+              }
+        
+              assignment[assignee][topicPartition.topic].push(topicPartition.partitionId)
+            })
+        
+            const roundRobin = Object.keys(assignment).map(memberId => ({
+              memberId,
+              memberAssignment: AssignerProtocol.MemberAssignment.encode({
+                version: 1,
+                assignment: assignment[memberId],
+                userData: undefined
+              }),
+            }));
+            console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+            console.log(topicsPartitions, sortedMembers);
+            console.log(assignment);
+            return roundRobin;
+          }
+          const protocol: (subscription: { topics: string[] }) => GroupState = (subscription) => {
+            return {
+              name: 'GBRAssigner',
+              metadata: AssignerProtocol.MemberMetadata.encode({
+                version: 1,
+                topics: subscription.topics,
+                userData: undefined
+              }),
+            }
+          }
+          return {
+            name: 'GBRAssigner',
+            version: 1,
+            assign,
+            protocol
+          }
+        }
+      ]
+    });
     this.admin    = this.kafka.admin();
   }
 
@@ -34,16 +102,9 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     /** connect producer, consumer, initialize partitions, and get topics */
     await this.producer.connect();
     await this.consumer.connect();
-    const topics = await this.checkPartitionsGetTopics();
-    const levelTopics = topics.filter(topic => topic[0] === 'l');
+    await this.checkPartitionsGetTopics();
 
-    /** subscribe to only levels <= current level */
-    const account = this.appService.getAccount();
-    const topicsToSubscribe = levelTopics.filter(levelTopic => +levelTopic.slice(1) <= account.rank);
-
-    console.log('subscribing to ', topicsToSubscribe);
-    await this.consumer.subscribe({ fromBeginning: true, topics: topicsToSubscribe });
-    // await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
+    await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
     return await this.consumer.run({
       autoCommit: true,
       eachMessage: async payload => {
