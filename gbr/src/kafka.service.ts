@@ -37,15 +37,11 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const topics = await this.checkPartitionsGetTopics();
     const levelTopics = topics.filter(topic => topic[0] === 'l');
 
-    /** subscribe to only levels <= current level */
-    for (const levelTopic of levelTopics) {
-      const level = +levelTopic.slice(1);
-      const account = this.appService.getAccount();
-      if (level <= account.rank) {
-        console.log('subscribing to ', levelTopic);
-        await this.consumer.subscribe({ fromBeginning: false, topic: levelTopic });
-      }
-    }
+    await this.subscribeToTopics(levelTopics);
+    setInterval(async () => {
+      console.log('interval passed, resubscribing')
+      this.subscribeToTopics(levelTopics);
+    }, 1000 * 60 * 5);
     // await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
     return this.consumer.run({
       autoCommit: true,
@@ -55,7 +51,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           const raid = JSON.parse(messageString || '{}'); // everything comes as a buffer
           
           const found = this.configService.config.raidmetadata.find(m => m.quest_id === raid.quest_id);
-          console.log(this.appService.getAccount().rank, 'processing ', raid.battleKey, 'with level', found?.level);
+          console.log(payload.topic, payload.partition, this.appService.getAccount().rank, 'processing ', raid.battleKey, 'with level', found?.level);
           // {"locale":"JP","message":"","battleKey":"F35BF263","quest_id":"301061"}
           const update = await this.appService.getRaidInfo(raid.battleKey);
           // console.log(topic, partition, raid, update); // print the message
@@ -110,6 +106,18 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     }
     this.admin.disconnect();
     return topics;
+  }
+
+  private async subscribeToTopics(levelTopics) {
+    /** subscribe to only levels <= current level */
+    for (const levelTopic of levelTopics) {
+      const level = +levelTopic.slice(1);
+      const account = this.appService.getAccount();
+      if (level <= account.rank) {
+        console.log('subscribing to ', levelTopic);
+        await this.consumer.subscribe({ fromBeginning: false, topic: levelTopic });
+      }
+    }
   }
 
   /**
