@@ -53,6 +53,9 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
         if (this.isRaidTopic(payload.topic)) {
           const messageString = payload.message.value?.toString();
           const raid = JSON.parse(messageString || '{}'); // everything comes as a buffer
+          
+          const found = this.configService.config.raidmetadata.find(m => m.quest_id === raid.quest_id);
+          console.log(this.appService.getAccount().rank, 'processing ', raid.battleKey, 'with level', found?.level);
           // {"locale":"JP","message":"","battleKey":"F35BF263","quest_id":"301061"}
           const update = await this.appService.getRaidInfo(raid.battleKey);
           // console.log(topic, partition, raid, update); // print the message
@@ -93,6 +96,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const numConnectedClients = groupDescription.groups[0].members.length;
     const topics = await this.admin.listTopics();
     const levelTopics = topics.filter(topic => this.isRaidTopic(topic));
+    if (!levelTopics.length) return [];
     const topicMetadata = await this.admin.fetchTopicMetadata({ topics: [levelTopics[0]] });
     const partitionsPerTopic = topicMetadata.topics[0].partitions.length;
     console.log('connected clients: ', numConnectedClients, 'partitions per topic: ', partitionsPerTopic);
