@@ -37,13 +37,14 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const topics = await this.checkPartitionsGetTopics();
     const levelTopics = topics.filter(topic => topic[0] === 'l');
 
-    await this.subscribeToTopics(levelTopics);
-    setInterval(async () => {
-      console.log('interval passed, resubscribing')
-      this.subscribeToTopics(levelTopics);
-    }, 1000 * 60 * 5);
+    /** subscribe to only levels <= current level */
+    const account = this.appService.getAccount();
+    const topicsToSubscribe = levelTopics.filter(levelTopic => +levelTopic.slice(1) <= account.rank);
+
+    console.log('subscribing to ', topicsToSubscribe);
+    await this.consumer.subscribe({ fromBeginning: false, topics: topicsToSubscribe });
     // await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
-    return this.consumer.run({
+    return await this.consumer.run({
       autoCommit: true,
       eachMessage: async payload => {
         if (this.isRaidTopic(payload.topic)) {
@@ -106,18 +107,6 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     }
     this.admin.disconnect();
     return topics;
-  }
-
-  private async subscribeToTopics(levelTopics) {
-    /** subscribe to only levels <= current level */
-    for (const levelTopic of levelTopics) {
-      const level = +levelTopic.slice(1);
-      const account = this.appService.getAccount();
-      if (level <= account.rank) {
-        console.log('subscribing to ', levelTopic);
-        await this.consumer.subscribe({ fromBeginning: false, topic: levelTopic });
-      }
-    }
   }
 
   /**
