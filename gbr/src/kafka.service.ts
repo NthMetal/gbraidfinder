@@ -44,7 +44,12 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
             })
         
             topicsPartitions.forEach((topicPartition, i) => {
-              const validAssignees = sortedMembers.filter(member => +topicPartition.topic.slice(1) <= +member.split('-')[1])
+              const topicRank = +topicPartition.topic.slice(1);
+              //TODO: Revert this when partitions are more balanced
+              const validAssignees = topicRank < 200 ?
+                sortedMembers.filter(member => topicRank <= +member.split('-')[1] && +member.split('-')[1] < 200) :
+                sortedMembers.filter(member => topicRank <= +member.split('-')[1])
+              
               const assignee = validAssignees[i % validAssignees.length]
               if (!assignment[assignee]) {
                 assignment[assignee] = Object.create(null)
@@ -112,8 +117,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           const messageString = payload.message.value?.toString();
           const raid = JSON.parse(messageString || '{}'); // everything comes as a buffer
           
-          const found = this.configService.config.raidmetadata.find(m => m.quest_id === raid.quest_id);
-          console.log(payload.topic, payload.partition, this.appService.getAccount().rank, 'processing ', raid.battleKey, 'with level', found?.level);
+          // console.log(payload.topic, payload.partition, this.appService.getAccount().rank, 'processing ', raid.battleKey);
           // {"locale":"JP","message":"","battleKey":"F35BF263","quest_id":"301061"}
           const update = await this.appService.getRaidInfo(raid.battleKey);
           // console.log(topic, partition, raid, update); // print the message

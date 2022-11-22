@@ -162,7 +162,8 @@ export class AppService {
 
     if (raidInfoResult.resultStatus === 'relaod') {
       console.log('reloading page');
-      await this.page.reload();
+      this.page.reload();
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 20));
       const raidInfoResult = await this.evaluateBattleKey(battleKey);
       return {
         status: 'success',
@@ -177,146 +178,161 @@ export class AppService {
   }
 
   private async evaluateBattleKey(battleKey: string) {
-    return await this.page.evaluate(async (battleKey) => {
-      const offset = 1000 + (Math.floor(Math.random() * 999));
-      const time = (new Date()).getTime();
-      
-      // NOTE: the uid is of a rank 5 throwaway account incase they track that to ban users
-      const raidPID_fetch = await fetch(`https://game.granbluefantasy.jp/quest/battle_key_check?_=${time}&t=${time + offset}&uid=37043449`, {
-        "headers": {
-          "accept": "application/json, text/javascript, */*; q=0.01",
-          "accept-language": "en-US,en;q=0.9",
-          "content-type": "application/json",
-          "sec-ch-ua": "\"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"Windows\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          "x-requested-with": "XMLHttpRequest",
-          "x-version": window['Game'].version
-          // "x-version": '' + 1668656000
-        },
-        "referrer": "https://game.granbluefantasy.jp/",
-        "referrerPolicy": "strict-origin-when-cross-origin",
-        "body": `{\"special_token\":null,\"battle_key\":\"${battleKey}\"}`,
-        "method": "POST",
-        "mode": "cors",
-        "credentials": "include"
-      });
-
-      if (raidPID_fetch.status === 409) {
-        return {
-          resultStatus: 'relaod',
-          link: '',
-          hp: '',
-          players: '',
-          timeLeft: '',
-          questHostClass: '',
-          raidPID: '',
-          questID: '',
-          battleKey
+    try {
+      return await this.page.evaluate(async (battleKey) => {
+        const offset = 1000 + (Math.floor(Math.random() * 999));
+        const time = (new Date()).getTime();
+        
+        // NOTE: the uid is of a rank 5 throwaway account incase they track that to ban users
+        const raidPID_fetch = await fetch(`https://game.granbluefantasy.jp/quest/battle_key_check?_=${time}&t=${time + offset}&uid=37043449`, {
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "accept-language": "en-US,en;q=0.9",
+            "content-type": "application/json",
+            "sec-ch-ua": "\"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-requested-with": "XMLHttpRequest",
+            "x-version": window['Game'].version
+            // "x-version": '' + 1668656000
+          },
+          "referrer": "https://game.granbluefantasy.jp/",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "body": `{\"special_token\":null,\"battle_key\":\"${battleKey}\"}`,
+          "method": "POST",
+          "mode": "cors",
+          "credentials": "include"
+        });
+  
+        if (raidPID_fetch.status === 409) {
+          return {
+            resultStatus: 'relaod',
+            link: '',
+            hp: '',
+            players: '',
+            timeLeft: '',
+            questHostClass: '',
+            raidPID: '',
+            questID: '',
+            battleKey
+          }
         }
-      }
-
-      const raidPID_result = await raidPID_fetch.json();
-      if (!raidPID_result.redirect) {
-        // parse popup
-        // raid is either full or finished
-        const result = raidPID_result?.popup?.body ?
-          raidPID_result.popup.body === 'This raid battle has already ended.' ? 'ended' :
-            raidPID_result.popup.body === 'This raid battle is full. You can\'t participate.' ? 'full' :
-              'unknown' : 'unknown';
-        return {
-          resultStatus: result + '-' + raidPID_fetch.status,
-          link: '',
-          hp: '',
-          players: '',
-          timeLeft: '',
-          questHostClass: '',
-          raidPID: '',
-          questID: '',
-          battleKey
+  
+        const raidPID_result = await raidPID_fetch.json();
+        if (!raidPID_result.redirect) {
+          // parse popup
+          // raid is either full or finished
+          const result = raidPID_result?.popup?.body ?
+            raidPID_result.popup.body === 'This raid battle has already ended.' ? 'ended' :
+              raidPID_result.popup.body === 'This raid battle is full. You can\'t participate.' ? 'full' :
+                'unknown' : 'unknown';
+          return {
+            resultStatus: result + '-' + raidPID_fetch.status,
+            link: '',
+            hp: '',
+            players: '',
+            timeLeft: '',
+            questHostClass: '',
+            raidPID: '',
+            questID: '',
+            battleKey
+          }
         }
-      }
-      const splitraidPID = raidPID_result.redirect.split('/');
-      const raidPID = splitraidPID[2]
-      const questID = splitraidPID[3]
-
-      const raidInfo_fetch: any = await fetch(`https://game.granbluefantasy.jp/quest/content/supporter_raid/${raidPID}/3/0?_=${time}&t=${time + offset}&uid=37043449`, {
-        "headers": {
-          "accept": "application/json, text/javascript, */*; q=0.01",
-          "accept-language": "en-US,en;q=0.9",
-          "sec-ch-ua": "\"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"Windows\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          "x-requested-with": "XMLHttpRequest",
-          "x-version": window['Game'].version
-        },
-        "referrer": "https://game.granbluefantasy.jp/",
-        "referrerPolicy": "strict-origin-when-cross-origin",
-        "body": null,
-        "method": "GET",
-        "mode": "cors",
-        "credentials": "include"
-      });
-      const raidInfo_result = await raidInfo_fetch.json();
-
-      if (!raidInfo_result.data) {
-        // some error happened
+        const splitraidPID = raidPID_result.redirect.split('/');
+        const raidPID = splitraidPID[2]
+        const questID = splitraidPID[3]
+  
+        const raidInfo_fetch: any = await fetch(`https://game.granbluefantasy.jp/quest/content/supporter_raid/${raidPID}/3/0?_=${time}&t=${time + offset}&uid=37043449`, {
+          "headers": {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "accept-language": "en-US,en;q=0.9",
+            "sec-ch-ua": "\"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-requested-with": "XMLHttpRequest",
+            "x-version": window['Game'].version
+          },
+          "referrer": "https://game.granbluefantasy.jp/",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "body": null,
+          "method": "GET",
+          "mode": "cors",
+          "credentials": "include"
+        });
+        const raidInfo_result = await raidInfo_fetch.json();
+  
+        if (!raidInfo_result.data) {
+          // some error happened
+          return {
+            resultStatus: 'dataerror',
+            link: '',
+            hp: '',
+            players: '',
+            timeLeft: '',
+            questHostClass: '',
+            raidPID,
+            questID,
+            battleKey
+          }
+        }
+        // NOTE: raidInfo_result is a large url encoded string containing the html of the summon select page.
+        // decoding the entire thing and doing regex operations on the entire thing is too much since most of it is the summon list
+        const shortData = raidInfo_result.data.substring(0, 4500);
+  
+        // raidInfo_result.data
+  
+        // hp  - prt-raid-gauge-inner%22%20style%3D%22width%3A%2019%25%3B
+        //       prt-raid-gauge-inner"     style=  "  width:     19%  ;
+        const hp_reg = shortData.match(/prt-raid-gauge-inner%22%20style%3D%22width%3A%20(.{1}|.{2}|.{3})%25%3B/);
+  
+        // players - prt-flees-in%22%3E2%2F30%3C
+        //           prt-flees-in"  >  2/  30<                  1/6  1/18  10/30
+        const players_reg = shortData.match(/prt-flees-in%22%3E(.{5}|.{6}|.{7})%3C/);
+  
+        // time left - prt-remaining-time%22%3E01%3A15%3A51%3C
+        //             prt-remaining-time"  >  01:  15:  51<
+        const timeLeft_reg = shortData.match(/prt-remaining-time%22%3E(.{12})%3C/);
+  
+        // quest host class - icon%2Fjob%2F100401.png
+        //                    icon/  job/  100401.png
+        const questHostClass_reg = shortData.match(/icon%2Fjob%2F(.{6})\.png/);
+  
+  
         return {
-          resultStatus: 'dataerror',
-          link: '',
-          hp: '',
-          players: '',
-          timeLeft: '',
-          questHostClass: '',
+          resultStatus: 'success',
+          link: raidPID_result.redirect,
+          hp: hp_reg ? hp_reg[1] : '',
+          players: players_reg ? players_reg[1] : '',
+          timeLeft: timeLeft_reg ? timeLeft_reg[1] : '',
+          questHostClass: questHostClass_reg ? questHostClass_reg[1] : '',
           raidPID,
           questID,
           battleKey
-        }
-      }
-      // NOTE: raidInfo_result is a large url encoded string containing the html of the summon select page.
-      // decoding the entire thing and doing regex operations on the entire thing is too much since most of it is the summon list
-      const shortData = raidInfo_result.data.substring(0, 4500);
-
-      // raidInfo_result.data
-
-      // hp  - prt-raid-gauge-inner%22%20style%3D%22width%3A%2019%25%3B
-      //       prt-raid-gauge-inner"     style=  "  width:     19%  ;
-      const hp_reg = shortData.match(/prt-raid-gauge-inner%22%20style%3D%22width%3A%20(.{1}|.{2}|.{3})%25%3B/);
-
-      // players - prt-flees-in%22%3E2%2F30%3C
-      //           prt-flees-in"  >  2/  30<                  1/6  1/18  10/30
-      const players_reg = shortData.match(/prt-flees-in%22%3E(.{5}|.{6}|.{7})%3C/);
-
-      // time left - prt-remaining-time%22%3E01%3A15%3A51%3C
-      //             prt-remaining-time"  >  01:  15:  51<
-      const timeLeft_reg = shortData.match(/prt-remaining-time%22%3E(.{12})%3C/);
-
-      // quest host class - icon%2Fjob%2F100401.png
-      //                    icon/  job/  100401.png
-      const questHostClass_reg = shortData.match(/icon%2Fjob%2F(.{6})\.png/);
-
-
+        };
+  
+  
+  
+      }, battleKey);  
+    } catch (error) {
+      console.log('error evaluating battle key', error);
       return {
-        resultStatus: 'success',
-        link: raidPID_result.redirect,
-        hp: hp_reg ? hp_reg[1] : '',
-        players: players_reg ? players_reg[1] : '',
-        timeLeft: timeLeft_reg ? timeLeft_reg[1] : '',
-        questHostClass: questHostClass_reg ? questHostClass_reg[1] : '',
-        raidPID,
-        questID,
+        resultStatus: 'evaluationError',
+        link: '',
+        hp: '',
+        players: '',
+        timeLeft: '',
+        questHostClass: '',
+        raidPID: '',
+        questID: '',
         battleKey
-      };
-
-
-
-    }, battleKey);
+      }
+    }
   }
 
 }
