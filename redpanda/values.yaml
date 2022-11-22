@@ -174,7 +174,7 @@ resources:
       # Minimum memory count for each Redpanda broker
       # Equivalent to: resources.limits.memory
       # For production: 10Gi or greater
-      max: 2.5Gi
+      max: 5Gi
     #
     # redpanda:
       # This optional redpanda section allows specifying the memory size for both the Redpanda
