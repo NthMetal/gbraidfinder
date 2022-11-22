@@ -45,7 +45,12 @@ Currently this will connect you to the backend that is already running without n
 
 ## Architecture
 
-<!-- ![GB Raidfinder Architecture (1)](https://user-images.githubusercontent.com/7328874/200879189-95e078ac-307f-4c2c-9604-6afed6913dbb.png) -->
+### Highlevel
+![GBRaidfinder Prime Architecture](https://user-images.githubusercontent.com/7328874/203427171-1a6f3a73-b428-4218-a626-b74b1c75ee62.png)
+
+### Redpanda/Kafka
+
+...
 
 Account Access through chrome debug port preview:
 
