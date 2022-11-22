@@ -157,12 +157,32 @@ export class AppService {
     if (this.loggedIn || this.page.url() === 'https://game.granbluefantasy.jp/#mypage') {
       this.loggedIn = true;
     } else return { status: 'not logged in' }
-    const raidInfoResult = await this.page.evaluate(async (battleKey) => {
+
+    const raidInfoResult = await this.evaluateBattleKey(battleKey);
+
+    if (raidInfoResult.resultStatus === 'relaod') {
+      console.log('reloading page');
+      await this.page.reload();
+      const raidInfoResult = await this.evaluateBattleKey(battleKey);
+      return {
+        status: 'success',
+        data: raidInfoResult
+      }
+    }
+
+    return {
+      status: 'success',
+      data: raidInfoResult
+    }
+  }
+
+  private async evaluateBattleKey(battleKey: string) {
+    return await this.page.evaluate(async (battleKey) => {
       const offset = 1000 + (Math.floor(Math.random() * 999));
       const time = (new Date()).getTime();
       
       // NOTE: the uid is of a rank 5 throwaway account incase they track that to ban users
-      const raidPID_fetch: any = await fetch(`https://game.granbluefantasy.jp/quest/battle_key_check?_=${time}&t=${time + offset}&uid=37043449`, {
+      const raidPID_fetch = await fetch(`https://game.granbluefantasy.jp/quest/battle_key_check?_=${time}&t=${time + offset}&uid=37043449`, {
         "headers": {
           "accept": "application/json, text/javascript, */*; q=0.01",
           "accept-language": "en-US,en;q=0.9",
@@ -175,6 +195,7 @@ export class AppService {
           "sec-fetch-site": "same-origin",
           "x-requested-with": "XMLHttpRequest",
           "x-version": window['Game'].version
+          // "x-version": '' + 1668656000
         },
         "referrer": "https://game.granbluefantasy.jp/",
         "referrerPolicy": "strict-origin-when-cross-origin",
@@ -183,6 +204,21 @@ export class AppService {
         "mode": "cors",
         "credentials": "include"
       });
+
+      if (raidPID_fetch.status === 409) {
+        return {
+          resultStatus: 'relaod',
+          link: '',
+          hp: '',
+          players: '',
+          timeLeft: '',
+          questHostClass: '',
+          raidPID: '',
+          questID: '',
+          battleKey
+        }
+      }
+
       const raidPID_result = await raidPID_fetch.json();
       if (!raidPID_result.redirect) {
         // parse popup
@@ -192,7 +228,7 @@ export class AppService {
             raidPID_result.popup.body === 'This raid battle is full. You can\'t participate.' ? 'full' :
               'unknown' : 'unknown';
         return {
-          resultStatus: result,
+          resultStatus: result + '-' + raidPID_fetch.status,
           link: '',
           hp: '',
           players: '',
@@ -281,10 +317,6 @@ export class AppService {
 
 
     }, battleKey);
-    return {
-      status: 'success',
-      data: raidInfoResult
-    }
   }
 
 }

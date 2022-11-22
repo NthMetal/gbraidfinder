@@ -1,34 +1,86 @@
+Helpful commands/text
 
-# Helm Chart for gbraidfinder
+gbr-context
 
-## Helpful commands
+kubectl create namespace gbraidfinderprime
 
-kubectl delete all --all -n gbr-context && helm uninstall --namespace=gbr-context gbr
+kubectl config set-context --current --namespace=gbraidfinderprime
 
-helm install --namespace=gbr-context --replace gbr .
+helm create gbraidfinderprime
 
-helm template .
+kubectl apply -f https://github.com/weaveworks/scope/releases/download/v1.13.2/k8s-scope.yaml
+kubectl get pods -n weave
+kubectl port-forward -n weave "service/weave-scope-app" 4201:80
 
-kubectl delete deploy raidfinder
-kubectl apply -f ./templates/raidfinder-deployment.yaml
+helm install redpanda-operator redpanda/redpanda-operator \
+    --namespace redpanda \
+    --create-namespace \
+    --set monitoring.enabled=true \
+    --version v22.2.2
 
-aws ecr get-login-password --region us-east-2 | do docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
-aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 833642098503.dkr.ecr.us-east-2.amazonaws.com
-docker tag d2018a50b26a 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
-docker push 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbr-containers:0.0.5
 
-kubectl expose --namespace=gbr-context deployment raidfinder --type=LoadBalancer --port=3000 --target-port=3000 --name=raidfinder-service2
+helm install redpanda redpanda/redpanda --namespace redpanda --create-namespace
 
-  // curl -k -H "Content-Type: application/json" -X POST http://afe2adbec799b4028a87105169e19b8c-535904035.us-east-2.elb.amazonaws.com:3001/3001/account/status
-  // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/status
-  // curl -k -H "Content-Type: application/json" -X POST http://a7174514fecf84321afff14ac8f28bfb-1968052504.us-east-2.elb.amazonaws.com:3000/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/account/status
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3001/initializeBrowser
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeLogin
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3000/initializeManually
-  // curl -k -H "Content-Type: application/json" -X POST http://localhost:3001/1/getRaidInfo -d "{\"battleKey\":\"80A65145\"}"
+helm repo add redpanda2 https://charts.vectorized.io/ && \
+helm repo update
 
-  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-0:3001/1/account/status
-  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-5:3001/1/account/set -d "{\"username\":\"username@email.here\", \"password\":\"passwordhere\", \"rank\": 111}"
-  // curl -k -H "Content-Type: application/json" -X POST http://gbr-service-8:3001/1/getRaidInfo -d "{\"battleKey\":\"5C940415\"}"
+kubectl apply \
+-n redpanda \
+-f https://raw.githubusercontent.com/redpanda-data/redpanda/dev/src/go/k8s/config/samples/one_node_cluster.yaml
+
+
+
+helm install redpanda redpanda/redpanda \
+    --namespace redpanda \
+    --create-namespace \
+    --version 2.1.0
+
+helm install redpanda-operator redpanda2/redpanda-operator \
+    --namespace redpanda-system \
+    --create-namespace \
+    --set monitoring.enabled=true \
+    --version v22.2.2
+
+
+helm search repo redpanda/redpanda --versions
+
+helm install redpanda ../redpanda -n redpanda
+kubectl delete all --all -n redpanda
+helm uninstall redpanda --namespace redpanda
+helm uninstall redpanda-console --namespace redpanda
+
+export POD_NAME=$(kubectl get pods --namespace redpanda -l "app.kubernetes.io/name=console,app.kubernetes.io/instance=redpanda-console" -o jsonpath="{.items[0].metadata.name}")
+export CONTAINER_PORT=$(kubectl get pod --namespace redpanda $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+echo "Visit http://127.0.0.1:8080 to use your application"
+kubectl --namespace redpanda port-forward $POD_NAME 8080:$CONTAINER_PORT
+redpanda-0.redpanda.redpanda.svc.cluster.local.:9093
+helm install -n redpanda redpanda-console redpanda-console/console --set-json 'console.config.kafka.brokers=["redpanda-0.redpanda.redpanda.svc.cluster.local.:9093", "redpanda-1.redpanda.redpanda.svc.cluster.local.:9093"]'
+
+helm install --namespace=gbraidfinderprime --replace gbr .
+helm uninstall --namespace=gbraidfinderprime gbr
+
+kubectl port-forward "deploy/gbr-0" 9222:9222 &
+
+helm upgrade --namespace=gbraidfinderprime gbr .
+helm upgrade --namespace=gbraidfinderprime --force --reset-values gbr .
+helm template . > template.yaml
+
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 group describe gbr
+
+
+docker exec -it redpanda1 rpk topic create l20 l30 l40 l80 l101 l120 l130 l150 l151 l170 l200
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 topic create l20 l30 l40 l80 l101 l120 l130 l150 l151 l170 l200
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 topic create update member_events
+
+
+l20
+l30
+l40
+l80
+l101
+l120
+l130
+l150
+l151
+l170
+l200
