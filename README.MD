@@ -51,13 +51,13 @@ Currently this will connect you to the backend that is already running without n
 ### Redpanda/Kafka
 
 #### Raid Lifecycle
-1. Raid is tweeted and picked up by *gbsource* either through twitter or another source
-2. *gbsource* determines the raid quest and level requirement to join
-3. *gbsource* sends the raid message to the cooresponding level topic (the level prefixed with an "l" ex. l120)
-4. *gbdist* is subscribed to all level topics and picks up the raid and sends it to users that are subscribed
-5. at the same time a *gbr* that is assigned to the partition the message was sent in picks it up and gets the update (hp and other info)
-6. the *gbr* that got the updated info posts that message to the "update" topic
-7. *gbdist* is subscribed to the "update" topic and sends the updated info to users that got the original raid
+1. Raid is tweeted and picked up by **gbsource** either through twitter or another source
+2. **gbsource** determines the raid quest and level requirement to join
+3. **gbsource** sends the raid message to the cooresponding level topic (the level prefixed with an "l" ex. l120)
+4. **gbdist** is subscribed to all level topics and picks up the raid and sends it to users that are subscribed
+5. at the same time a **gbr** that is assigned to the partition the message was sent in picks it up and gets the update (hp and other info)
+6. the **gbr** that got the updated info posts that message to the "update" topic
+7. **gbdist** is subscribed to the "update" topic and sends the updated info to users that got the original raid
 
 Account Access through chrome debug port preview:
 
