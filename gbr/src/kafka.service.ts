@@ -36,29 +36,35 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           const assign: (group: { members: GroupMember[]; topics: string[] }) => Promise<GroupMemberAssignment[]> = async (group) => {
             const membersCount = group.members.length
             const sortedMembers = group.members.map(({ memberId }) => memberId).sort()
-            const assignment = {}
-        
+            const assignment: { [member: string]: { [topic: string]: number[] }} = {}
+
             const topicsPartitions = group.topics.flatMap(topic => {
               const partitionMetadata = config.cluster.findTopicPartitionMetadata(topic)
               return partitionMetadata.map(m => ({ topic: topic, partitionId: m.partitionId }))
             })
-        
-            topicsPartitions.forEach((topicPartition, i) => {
+            const sortedTopicsPartitions = topicsPartitions.sort((topicA, topicB) => {
+              const topicARank = +topicA.topic.slice(1);
+              const topicBRank = +topicB.topic.slice(1);
+              return topicBRank - topicARank
+            });
+            const getTotalPerAssignee = (assignee) => {
+              if (!assignment[assignee]) return 0;
+              return Object.values(assignment[assignee]).flat().length
+            }
+            sortedTopicsPartitions.forEach((topicPartition, i) => {
               const topicRank = +topicPartition.topic.slice(1);
-              //TODO: Revert this when partitions are more balanced
-              const validAssignees = topicRank < 200 ?
-                sortedMembers.filter(member => topicRank <= +member.split('-')[1] && +member.split('-')[1] < 200) :
-                sortedMembers.filter(member => topicRank <= +member.split('-')[1])
+              const validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
+
+              const assignee = validAssignees.reduce((prev, curr) => {
+                const prevTotal = getTotalPerAssignee(prev);
+                const currTotal = getTotalPerAssignee(curr);
+                return prevTotal < currTotal ? prev : curr
+              });
+              // console.log(topicPartition, assignment, assignee);
+              // const assignee = validAssignees[i % validAssignees.length]
               
-              const assignee = validAssignees[i % validAssignees.length]
-              if (!assignment[assignee]) {
-                assignment[assignee] = Object.create(null)
-              }
-        
-              if (!assignment[assignee][topicPartition.topic]) {
-                assignment[assignee][topicPartition.topic] = []
-              }
-        
+              if (!assignment[assignee]) assignment[assignee] = {}
+              if (!assignment[assignee][topicPartition.topic]) assignment[assignee][topicPartition.topic] = []
               assignment[assignee][topicPartition.topic].push(topicPartition.partitionId)
             })
         
@@ -71,7 +77,8 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               }),
             }));
             console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-            console.log(topicsPartitions, sortedMembers);
+            console.log(group.topics);
+            console.log(sortedTopicsPartitions, sortedMembers);
             console.log(assignment);
             return roundRobin;
           }
