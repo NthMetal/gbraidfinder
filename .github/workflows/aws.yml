@@ -28,7 +28,7 @@ name: Deploy Backend to ECS
 
 on:
   push:
-    branches: [ "prime" ]
+    branches: [ "master" ]
     paths:
       - gbdist/**
       - gbr/**

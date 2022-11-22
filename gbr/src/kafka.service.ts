@@ -205,11 +205,9 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   async sendUpdate(update: any) {
     await this.producer.send({
       topic: `update`,
-      // topic: 'chat-room',
       messages: [
         { value: JSON.stringify(update) }
       ],
     });
-    // await transaction.commit();
   }
 }
