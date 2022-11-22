@@ -4,10 +4,11 @@ https://gbraidfinder.ogres.cc/home
 
 Designed to get more information from a raid than what was tweeted.
 
-* front - Frontend UI (Angular, Angular material, bootsrap grid)
-* back - Main backend server that gets tweets and requests updated raid info. (Nodejs, Nestjs, socket.io, rxjs)
-* gbr - A node microservice that runs puppeteer and has a logged in gbf account active and waiting to get info about a tweeted raid (Nodejs, Nestjs, rxjs)
+* gbdist - server that listens to all raids and updates and accepts socket connections from users (Nodejs, Nestjs, socket.io, rxjs, kafkajs)
+* gbr - A node microservice that runs puppeteer and has a logged in gbf account active and waiting to get info about a tweeted raid (Nodejs, Nestjs, rxjs, kafkajs)
+* gbsource - server that gets tweets and sends them to redpanda (Nodejs, Nestjs, rxjs, kafkajs)
 * k8s - kubernetes helm chart configuration for deployment (Kubernetes, Helm)
+* redpanda - Helm chart for redpanda, taken from https://github.com/redpanda-data/helm-charts/tree/36cb1a3169c14f396924a7942dc4cfd07cfdbb22/charts/redpanda
 
 Backend gets each tweet and passes it to the user and to a cluster of alt accounts at the same time. The backend chooses the account with the smallest queue.
 The logged in alt accounts make requests to get information about a raid. Sends that info to everyone subscribed to updates for that raid.
@@ -44,7 +45,7 @@ Currently this will connect you to the backend that is already running without n
 
 ## Architecture
 
-![GB Raidfinder Architecture (1)](https://user-images.githubusercontent.com/7328874/200879189-95e078ac-307f-4c2c-9604-6afed6913dbb.png)
+<!-- ![GB Raidfinder Architecture (1)](https://user-images.githubusercontent.com/7328874/200879189-95e078ac-307f-4c2c-9604-6afed6913dbb.png) -->
 
 Account Access through chrome debug port preview:
 
