@@ -35,7 +35,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
             const miniRaid = `none|a|none` +
                             `|0|${+(raid.locale === 'EN')}|${raid.battleKey}` +
                             `|${raid.quest_id}|${raid.created_at}|${sanitizedMessage}`;
-            console.log(JSON.stringify(raid));
+            // console.log(JSON.stringify(raid));
             this.socketUtils.emitToRoom('r'+raid.quest_id, 'raid', miniRaid);
         });
 
@@ -55,7 +55,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
             const miniUpdate = `${update.link}|${update.hp}|${update.players.replace('%2F', '/')}|` +
                                `${update.timeLeft.replace('%3A', ':').replace('%3A', ':')}|` +
                                `${update.questHostClass}|${update.questID}|${update.battleKey}`;
-            console.log(JSON.stringify(update));
+            // console.log(JSON.stringify(update));
             this.socketUtils.emitToRoom('u'+update.questID, 'update', miniUpdate);
         });
 

@@ -43,6 +43,38 @@ Run `npm start` to host a local version of the project at `localhost:4200`
 
 Currently this will connect you to the backend that is already running without need to run the backend locally. (This may change in the future)
 
+### Backend
+
+To run the backend locally, you have the option to use minikube to run a local kubernetes cluster and deploy everything there using helm.
+
+#### Using Minikube
+
+* For this option you will need to install [docker](https://docs.docker.com/get-docker/), [minikube](https://minikube.sigs.k8s.io/docs/start/), and [helm](https://helm.sh/docs/intro/install/)
+
+* Create a 'values.yaml' in the k8s directory and fill in at least 1 twitter api tokens, and add any account information you want to use. Use the values.example.yaml as a template.
+
+* Note: You may also need to change the `gbdist-service` template in `gbdist-deployment.yaml`
+
+* Install [redpanda](https://docs.redpanda.com/docs/platform/quickstart/kubernetes-qs-dev/) or kafka in your minikube cluster. 
+
+* Install the helm chart for this project by going into the `k8s` directory and running `helm install .`
+
+* To access chrome and log in to the accounts run `kubectl port-forward "deploy/gbr-0" 9222:9222` (incrementing values for multiple accounts ex. `kubectl port-forward "deploy/gbr-1" 9223:9222`)
+
+* Then visit chrome://inspect/#devices and Configure as many additional ports you need. After a couple seconds it should allow you to inspect the page and log in.
+
+#### Running Locally
+
+* Run redpanda locally, you can use `redpanda/docker-compose.yaml` to run a cluster of three redpanda instances locally.
+
+* Update any config files for apps you want to run (ex. `gbr/config/config.json`)
+
+* For running gbr, you can also modify any credentials in `gbr/package.json`. 
+
+* Alternatively you can also remove them and export the configs in your shell if running multiple instances.
+
+* Run `npm start` to start all of the applications.
+
 ## Architecture
 
 ### Highlevel
