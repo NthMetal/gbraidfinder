@@ -28,7 +28,7 @@ export class AppController implements OnModuleInit {
           battleKey: tweetSource.message[0].rescue_id,
           quest_id: metadata?.quest_id
         }
-        this.processRaid(raid, metadata.level, 'source');
+        this.processRaid(raid, metadata.level);
       } catch (error) {
         console.log(error);
       }
@@ -52,7 +52,7 @@ export class AppController implements OnModuleInit {
           quest_id: metadata?.quest_id
         }
 
-        this.processRaid(raid, metadata.level, 'twitter');
+        this.processRaid(raid, metadata.level);
       } catch (error) {
         console.log(error);
       }
@@ -62,13 +62,18 @@ export class AppController implements OnModuleInit {
     // }, 200);
   }
 
-  private processRaid(raid: any, level: string, source: string) {
+  /**
+   * Sends the raid to the kafka topic cooresponding to the level
+   * Raid codes are added to a buffer and removed from the buffer after 1 minute
+   * only sends raids to the topic that don't already have a code in the buffer
+   * @param raid raid to process
+   * @param level level requirement of the raid
+   */
+  private processRaid(raid: any, level: string) {
     const id = raid.battleKey;
     const bufferHasId = this.duplicateRaidBuffer.has(id);
     if (bufferHasId) return;
-    // console.log(this.duplicateRaidBuffer.size, raid.battleKey, source);
     this.duplicateRaidBuffer.add(id);
-    // this.raids.next(raid);
     this.kafkaService.sendRaid(raid, +level);
     setTimeout(() => {
       this.duplicateRaidBuffer.delete(id);

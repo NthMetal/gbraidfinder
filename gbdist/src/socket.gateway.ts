@@ -12,7 +12,6 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
     usersConnected = 0;
 
-    // constructor() {}
     constructor(private kafkaService: KafkaService) {}
 
     async afterInit(socket: Socket) {
@@ -59,23 +58,37 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
             console.log(JSON.stringify(update));
             this.socketUtils.emitToRoom('u'+update.questID, 'update', miniUpdate);
         });
-        // Send status
+
+        // Send status to all connected users every minute
         setInterval(() => {
             this.emitStatus(this.socket);
-        }, 60000);
+        }, 1000 * 60);
     }
-
-    handleDisconnect(socket: Socket) {
-        this.usersConnected--;
-        console.log('USER CONNECTED<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<', this.usersConnected);
-    }
-
+    
+    /**
+     * evoked when user connects
+     * Sends the status to the currently connected user
+     * @param socket socket user
+     */
     async handleConnection(socket: Socket) {
         this.usersConnected++;
         this.emitStatus(socket);
         console.log('USER CONNECTED======================================================', this.usersConnected, Object.keys(this.socket?.sockets || {}).length);
     }
 
+    /**
+     * evoked when user disconnects
+     * @param socket socket user
+     */
+    handleDisconnect(socket: Socket) {
+        this.usersConnected--;
+        console.log('USER DISCONNECTED<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<', this.usersConnected);
+    }
+
+    /**
+     * Wrapper function to emit the status
+     * @param socket socket user or server to emit the status to
+     */
     private emitStatus(socket: Socket | Server) {
         socket.emit(JSON.stringify({active: true}));
     }

@@ -104,15 +104,5 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
       ],
     });
   }
-
-  async sendMetadata(raidmetadata: any) {
-    if (!this.producerConnected) return;
-    await this.producer.send({
-      topic: `raidmetadata`,
-      messages: [
-        { value: JSON.stringify(raidmetadata) }
-      ],
-    });
-  }
   
 }

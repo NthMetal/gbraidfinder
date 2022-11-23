@@ -30,8 +30,10 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           groupId: string
         }) => {
           /** 
-           * Slightly modified version of round robin assiner that assigns topics to only group members with level less than or equal to topic level
-           * valid group members are assigned to topics in a round robin way
+           * Kafka custom assigner for spreading out which gbr handles getting the raid update
+           * determines only valid gbr instances then distributes every topic partition evenly by
+           * starting at the highest topic level (because those need to be distributed to highest account ranks)
+           * and assigning each topic partition to the valid member that has the least currently assigned partitions
            */
           const assign: (group: { members: GroupMember[]; topics: string[] }) => Promise<GroupMemberAssignment[]> = async (group) => {
             const membersCount = group.members.length

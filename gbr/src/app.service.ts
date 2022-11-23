@@ -177,6 +177,11 @@ export class AppService {
     }
   }
 
+  /**
+   * Evaluates the battle key
+   * @param battleKey battle key to get updated info
+   * @returns updated raid info
+   */
   private async evaluateBattleKey(battleKey: string) {
     try {
       return await this.page.evaluate(async (battleKey) => {
