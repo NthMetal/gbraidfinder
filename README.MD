@@ -2,6 +2,8 @@ https://gbraidfinder.ogres.cc/home
 
 # GBRaidfinder
 
+<img height="500px" src="https://user-images.githubusercontent.com/7328874/203625257-ad0f5736-4657-493b-908c-e782c5ba7010.gif">
+
 Designed to get more information from a raid than what was tweeted.
 
 * gbdist - server that listens to all raids and updates and accepts socket connections from users (Nodejs, Nestjs, socket.io, rxjs, kafkajs)
