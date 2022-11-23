@@ -53,7 +53,7 @@ To run the backend locally, you have the option to use minikube to run a local k
 
 * Create a 'values.yaml' in the k8s directory and fill in at least 1 twitter api tokens, and add any account information you want to use. Use the values.example.yaml as a template.
 
-* Note: You may also need to change the `gbdist-service` template in `gbdist-deployment.yaml`
+* Note: You may also need to modify the `gbdist-service` template in `k8s/templates/gbdist-deployment.yaml`
 
 * Install [redpanda](https://docs.redpanda.com/docs/platform/quickstart/kubernetes-qs-dev/) or kafka in your minikube cluster. 
 
@@ -62,6 +62,11 @@ To run the backend locally, you have the option to use minikube to run a local k
 * To access chrome and log in to the accounts run `kubectl port-forward "deploy/gbr-0" 9222:9222` (incrementing values for multiple accounts ex. `kubectl port-forward "deploy/gbr-1" 9223:9222`)
 
 * Then visit chrome://inspect/#devices and Configure as many additional ports you need. After a couple seconds it should allow you to inspect the page and log in.
+
+* Reccomendations: I reccomend running the following in your k8s cluster: 
+  * [weavescope](https://www.weave.works/docs/scope/latest/installing/#k8s) for monitoring pods more efficiently, accessing logs, and shells
+  * [redpanda-console](https://github.com/redpanda-data/console/tree/master/helm) for monitoring redpanda, and checking which topics have been assigned to which topic partition
+    * To install default console chart with specific brokers you can use the following command: `helm install -n redpanda redpanda-console redpanda-console/console --set-json 'console.config.kafka.brokers=["broker1:9092", "broker2:9093"]'`
 
 #### Running Locally
 
