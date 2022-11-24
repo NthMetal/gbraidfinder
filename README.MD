@@ -2,7 +2,7 @@ https://gbraidfinder.ogres.cc/home
 
 # GBRaidfinder
 
-<img height="500px" src="https://user-images.githubusercontent.com/7328874/203625257-ad0f5736-4657-493b-908c-e782c5ba7010.gif">
+<img src="https://user-images.githubusercontent.com/7328874/203625257-ad0f5736-4657-493b-908c-e782c5ba7010.gif">
 
 Designed to get more information from a raid than what was tweeted.
 
@@ -93,7 +93,7 @@ Since each raid requires a minimum level to get updated info, each raid can't be
 
 However, we also want to evenly distribute the raids so that one account isn't handling all of the raids for a topic. The way this is accomplished is by creating the same amount or more partitions as accounts. Raids per topic are distributed evenly per partition. For example if raid A, B, C are sent to topic l101, raid A will be sent to partition 0, raid B will be sent to partition 1, and raid C will be sent to partition 2.
 
-From there we can assign each partition to a gbr account seperately.
+From there we can assign each partition to a gbr account seperately. This is possible when the groupid of every gbr is the same. A group leader is chosen and can assign partitions to members of the group. The code for that can be found here: https://github.com/NthMetal/gbraidfinder/blob/master/gbr/src/kafka.service.ts
 
 To do this we start by assigning the partitions for the topic with the highest ranks because those have the most restrictions and the least amount of possible accounts they can be assigned to. Each partition is assigned to the account with the least current number of assignments. This can likely be further improved in the future by biasing each topic by raid frequency because there are more raids tweeted in l101 than l20.
 
