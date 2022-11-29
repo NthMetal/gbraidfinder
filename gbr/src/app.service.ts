@@ -154,7 +154,7 @@ export class AppService {
   public async getRaidInfo(battleKey: string) {
     if (!this.account) return { status: 'no account'};
     if (!this.initializedBrowser) return { status: 'browser not initialized' };
-    if (this.loggedIn || this.page.url() === 'https://game.granbluefantasy.jp/#mypage') {
+    if (this.loggedIn || this.page.url() === 'https://game.granbluefantasy.jp/#profile') {
       this.loggedIn = true;
     } else return { status: 'not logged in' }
 

@@ -49,17 +49,48 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               const topicBRank = +topicB.topic.slice(1);
               return topicBRank - topicARank
             });
-            const getTotalPerAssignee = (assignee) => {
+            const offsetsPartition0 = await config.cluster.fetchTopicsOffset(
+              group.topics.map(topic => ({
+                topic,
+                partitions: [{ partition: 0 }],
+                fromBeginning: false
+              }))
+            );
+            const offsetWeights = offsetsPartition0.reduce((acc, curr) => {
+              acc[curr.topic] = curr.partitions[0].offset
+              return acc;
+            }, {});
+            console.log(offsetWeights);
+            // assignment[assignee]  {
+            //   l200: [
+            //     0,  2,  4, 6,
+            //     8, 10, 12
+            //   ],
+            //   l150: [ 10 ],
+            //   l130: [ 12 ],
+            //   l101: [ 12 ],
+            //   l80: [ 9 ],
+            //   l40: [ 6 ],
+            //   l30: [ 3 ],
+            //   l20: [ 0, 10 ]
+            // }
+            const getAssigneeHeuristic = (assignee) => {
               if (!assignment[assignee]) return 0;
-              return Object.values(assignment[assignee]).flat().length
+              return Object.entries(assignment[assignee]).reduce((acc, curr) => {
+                // curr  [ 'l101', [ 12 ]]
+                const weight = offsetWeights[curr[0]] || 1;
+                acc += weight * curr[1].length
+                return acc;
+              }, 0);
+              // return Object.values(assignment[assignee]).flat().length
             }
             sortedTopicsPartitions.forEach((topicPartition, i) => {
               const topicRank = +topicPartition.topic.slice(1);
               const validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
 
               const assignee = validAssignees.reduce((prev, curr) => {
-                const prevTotal = getTotalPerAssignee(prev);
-                const currTotal = getTotalPerAssignee(curr);
+                const prevTotal = getAssigneeHeuristic(prev);
+                const currTotal = getAssigneeHeuristic(curr);
                 return prevTotal < currTotal ? prev : curr
               });
               // console.log(topicPartition, assignment, assignee);
