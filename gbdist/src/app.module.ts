@@ -4,11 +4,10 @@ import { AppService } from './app.service';
 import { ConfigService } from './config.service';
 import { KafkaService } from './kafka.service';
 import { SocketGateway } from './socket.gateway';
-import { StatsService } from './stats.service';
 
 @Module({
   imports: [],
   controllers: [AppController],
-  providers: [AppService, ConfigService, KafkaService, SocketGateway, StatsService],
+  providers: [AppService, ConfigService, KafkaService, SocketGateway],
 })
 export class AppModule {}
