@@ -10,6 +10,7 @@ gbrInstances:
 config:
   twittertokens:
     - "Put Twitter Token Here"
+  dburl: ''
   redpandaBrokers:
     - redpanda-0.redpanda.redpanda.svc.cluster.local.:9093
     - redpanda-1.redpanda.redpanda.svc.cluster.local.:9093

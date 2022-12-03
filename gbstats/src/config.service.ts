@@ -4,6 +4,7 @@ import * as fs from 'fs';
 
 type Config = {
     twittertokens: string[],
+    dburl: string,
     redpandaBrokers: string[],
     raidmetadata: {
         level: string,

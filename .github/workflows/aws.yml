@@ -33,12 +33,14 @@ on:
       - gbdist/**
       - gbr/**
       - gbsource/**
+      - gbstats/**
 
 env:
   AWS_REGION: us-east-2                                      # set this to your preferred AWS region, e.g. us-west-1
   ECR_REPOSITORY_GBDIST: gbdist-containers           # set this to your Amazon ECR repository name
   ECR_REPOSITORY_GBR: gbr-containers                         # set this to your Amazon ECR repository name
   ECR_REPOSITORY_GBSOURCE: gbsource-containers                         # set this to your Amazon ECR repository name
+  ECR_REPOSITORY_GBSTATS: gbstats-containers                         # set this to your Amazon ECR repository name
 
 permissions:
   contents: read
@@ -61,6 +63,8 @@ jobs:
             - 'gbr/**'
           gbsource:
             - 'gbsource/**'
+          gbstats:
+            - 'gbstats/**'
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -117,3 +121,18 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_GBSOURCE:$IMAGE_TAG"
+    
+    - name: Build, tag, and push gbstats to Amazon ECR
+      id: build-gbstats-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      if: steps.filter.outputs.gbstats == 'true'
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GBSTATS:latest -t $ECR_REGISTRY/$ECR_REPOSITORY_GBSTATS:$IMAGE_TAG ./gbstats
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSTATS:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_GBSTATS:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY_GBSTATS:$IMAGE_TAG"
