@@ -84,3 +84,5 @@ l150
 l151
 l170
 l200
+
+kubectl port-forward -n mongodb "service/mongodb-service" 27018:27017

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbstats
+  labels:
+    app: gbstats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gbstats
+  template:
+    metadata:
+      labels:
+        app: gbstats
+    spec:
+      containers:
+      - name: gbstats
+        image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbstats-containers:latest
+        # env:
+        #   - name: GBR_INSTANCE_COUNT
+        #     value: '{{ len .Values.gbrInstances }}'
+        ports:
+        - name: "p3000"
+          containerPort: 3000
+        volumeMounts:
+          - mountPath: /usr/src/app/config
+            name: config-secret
+      volumes:
+        - name: config-secret
+          secret:
+            secretName: config-secret
+            items:
+            - key: config.json
+              path: config.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gbstats-service
+spec:
+  selector:
+    app: gbstats
+  ports:
+    - name: "p3000"
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

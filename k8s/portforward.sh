@@ -2,7 +2,7 @@
 
 # Bash script for forwarding multiple chrome debug ports
 
-accounts=8
+accounts=9
 pids=()
 
 x=0

@@ -7,10 +7,15 @@ gbrInstances:
     password: accountpassword
     rank: 123
 
+db:
+  username: 'usernamee' # Used when initializing db container
+  password: 'passwordd' # Used when initializing db container
+  url: &dburl mongodb://usernamee:passwordd@mongodb-service.namespace:27017 # Config url sent to pods so they can connect
+
 config:
   twittertokens:
     - "Put Twitter Token Here"
-  dburl: ''
+  dburl: *dburl
   redpandaBrokers:
     - redpanda-0.redpanda.redpanda.svc.cluster.local.:9093
     - redpanda-1.redpanda.redpanda.svc.cluster.local.:9093
