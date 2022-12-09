@@ -7,7 +7,7 @@
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
-            <div class="col-auto d-flex align-items-center" (click)="openDialog(statusDebugDialog)">
+            <div class="col-auto d-flex align-items-center" (click)="gotoStats()">
                 <div *ngIf="socketioService.connected" matTooltip="online" style="padding: 4px;
           margin: 8px;
           border-radius: 100%;

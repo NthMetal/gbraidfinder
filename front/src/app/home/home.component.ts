@@ -255,7 +255,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnDestroy() {
-    this.formChangesSubscription.unsubscribe();
+    if (this.formChangesSubscription) this.formChangesSubscription.unsubscribe();
   }
 
   /**
@@ -425,6 +425,10 @@ export class HomeComponent implements OnInit {
    */
   public copyTextToClipboard(text: string) {
     return this.notificationService.copyTextToClipboard(text);
+  }
+
+  public gotoStats() {
+    this.router.navigate(['/stats']);
   }
 
 
