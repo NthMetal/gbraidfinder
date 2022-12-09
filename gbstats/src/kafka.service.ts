@@ -32,18 +32,24 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     await this.consumer.connect();
 
     await this.consumer.subscribe({ fromBeginning: true, topic: /l.*/ });
-    await this.consumer.subscribe({ fromBeginning: false, topic: 'update' });
+    await this.consumer.subscribe({ fromBeginning: true, topic: 'update' });
     this.consumer.run({
       autoCommit: true,
       eachMessage: async (payload) => {
         const messageString = payload.message.value?.toString();
         if (this.isRaidTopic(payload.topic)) {
           const raid = JSON.parse(messageString || '{}');
-          this.raids.next(raid);
+          this.raids.next({
+            timestamp: payload.message.timestamp,
+            raid
+          });
         }
         if (payload.topic === 'update') {
           const update = JSON.parse(messageString || '{}');
-          this.updates.next(update);
+          this.updates.next({
+            timestamp: payload.message.timestamp,
+            update
+          });
         }
       },
     });

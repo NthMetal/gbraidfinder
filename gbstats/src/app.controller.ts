@@ -1,12 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ConfigService } from './config.service';
+import { StatsService } from './stats.service';
 
 
 @Controller()
 export class AppController {
 
   constructor(
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly statsService: StatsService
   ) { }
 
   @Get('/hi')
@@ -14,9 +16,14 @@ export class AppController {
     return { result: "hi" };
   }
 
-  @Get('/get_raid_metadata')
-  async getResults() {
-    return this.configService.config.raidmetadata;
+  @Get('/stats')
+  async getResults(
+    @Query('questId') questId,
+    @Query('start') start,
+    @Query('end') end,
+    @Query('interval') interval
+  ) {
+    return await this.statsService.queryInterval(questId, new Date(+start), new Date(+end), interval);
   }
 
 }
