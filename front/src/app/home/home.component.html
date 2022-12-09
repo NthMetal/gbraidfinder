@@ -1,1 +1,469 @@
-<div></div>
+<div class="row flex-column flex-nowrap h-100">
+    <!-- Top Navigation Header -->
+    <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
+        <div class="row">
+            <div class="col-auto">
+                <button mat-mini-fab color="primary" (click)="openDialog(raidDialog)">
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            <div class="col-auto d-flex align-items-center" (click)="openDialog(statusDebugDialog)">
+                <div *ngIf="socketioService.connected" matTooltip="online" style="padding: 4px;
+          margin: 8px;
+          border-radius: 100%;
+          background: rgb(7 227 54 / 80%);
+          box-shadow: rgb(7 227 65 / 50%) 0px 0px 10px 2px inset, rgb(21 227 7 / 80%) 0px 0px 10px 2px;"></div>
+                <div *ngIf="!socketioService.connected" matTooltip="offline" style="padding: 4px;
+          margin: 8px;
+          border-radius: 100%;
+          background: rgb(227 7 7 / 80%);
+          box-shadow: rgb(227 7 7 / 50%) 0px 0px 10px 2px inset, rgb(227 7 7 / 80%) 0px 0px 10px 2px;"></div>
+            </div>
+            <!-- <div class="col-auto">
+          <button mat-mini-fab color="primary">
+            <mat-icon>insights</mat-icon>
+          </button>
+        </div> -->
+            <div class="col"></div>
+            <div class="col-auto">
+                <a href="https://github.com/NthMetal/gbraidfinder/issues" target="_blank">
+                    <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
+                        <img src="assets/icons/github-logo.svg" />
+                    </button>
+                </a>
+            </div>
+            <div class="col-auto">
+                <button mat-icon-button (click)="openDialog(infoDialog, true)">
+                    <mat-icon class="material-icons-outlined"
+                        [matBadge]="!settingsService.maintinance.notify ? '' : settingsService.maintinance.notify"
+                        matBadgeSize="small" matBadgeColor="warn">info</mat-icon>
+                </button>
+            </div>
+            <div class="col-auto">
+                <button mat-mini-fab color="primary" (click)="openBottomSheet(settingsBottomSheet)">
+                    <mat-icon>settings</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Container that has raid columns -->
+    <div class="col mt-5 pt-2">
+        <div class="row align-items-center flex-nowrap" style="height: calc(100vh - 4.6rem);" dragula="DRAGABLE_COLUMNS"
+            [(dragulaModel)]="subscribedRaids">
+            <div class="gx-0 col-2 bg-2 m-3"
+                style="height: calc(100vh - 7rem); min-width: 20rem; border-radius: 0.5rem; box-shadow: 1px 2px 8px #101010;"
+                *ngFor="let raid_data of subscribedRaids"
+                [matBadge]="settingsService.settings.questNotificationSettings[raid_data.quest_id]?.enabled || settingsService.settings.questSoundSettings[raid_data.quest_id]?.enabled ? '✱' : ''"
+                matBadgeColor="primary">
+                <div class="p-2 row align-items-center dragula-handle" handle>
+                    <div class="col-auto dragula-handle" handle>
+                        <button mat-icon-button color="primary" (click)="unsubscribeRaid(raid_data.quest_id)">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                    <div class="col dragula-handle" handle>{{raid_data.quest_name_en}}</div>
+                    <div class="col-auto dragula-handle" handle>
+                        <button mat-icon-button color="primary" [matMenuTriggerFor]="columnMenu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #columnMenu="matMenu">
+                            <button mat-menu-item (click)="moveQuestLeft(raid_data)">
+                                <mat-icon>keyboard_arrow_left</mat-icon>Move Left
+                            </button>
+                            <button mat-menu-item (click)="moveQuestRight(raid_data)">
+                                <mat-icon>keyboard_arrow_right</mat-icon>Move Right
+                            </button>
+                            <button mat-menu-item (click)="clearAllRaidsInQuest(raid_data)">
+                                <mat-icon>clear_all</mat-icon>Clear
+                            </button>
+                            <button mat-menu-item (click)="toggleQuestNotifications(raid_data)">
+                                <mat-icon
+                                    *ngIf="settingsService.settings.questNotificationSettings[raid_data.quest_id] && settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
+                                    notifications_active</mat-icon>
+                                <mat-icon
+                                    *ngIf="!settingsService.settings.questNotificationSettings[raid_data.quest_id] || !settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
+                                    notifications_off</mat-icon>
+                                <!-- {{raid_data.notifications ? 'Disable' : 'Enable'}} -->
+                                Notifications
+                            </button>
+                            <button mat-menu-item (click)="toggleQuestSound(raid_data)">
+                                <mat-icon
+                                    *ngIf="settingsService.settings.questSoundSettings[raid_data.quest_id] && settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
+                                    music_note</mat-icon>
+                                <mat-icon
+                                    *ngIf="!settingsService.settings.questSoundSettings[raid_data.quest_id] || !settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
+                                    music_off</mat-icon>
+                                <!-- {{raid_data.sound ? 'Disable' : 'Enable'}} -->
+                                Sound
+                            </button>
+                        </mat-menu>
+                    </div>
+                </div>
+                <mat-divider class="mb-1"></mat-divider>
+                <div class="px-2" style="overflow-y: scroll; height: calc(100% - 4.4rem);">
+                    <!-- Each Raid Card was put in an ng template for a feature in the future -->
+                    <div style="height: calc(100% - 1rem);">
+                        <ng-container *ngFor="let raid of raids[raid_data.quest_id]">
+                            <ng-container *ngTemplateOutlet="raidCard; context: {$implicit: raid}"></ng-container>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<ng-template #raidCard let-raid>
+    <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }" (click)="selectRaid(raid)">
+        <!-- { 
+          "twitterUser": { 
+            "name": "FREQ",
+            "imgUrl": "a",   1046707735033565184/g_oRfx2P_normal.jpg
+            "username": "Sm0325Freq",
+            "verified": false
+          },
+          "locale": "JP",
+          "message": "",
+          "battleKey": "CAC6DF94",
+          "quest_id": "301061" 
+        } -->
+        <!-- <mat-icon *ngIf="raid.twitterUser.verified">verified</mat-icon> -->
+        <!-- <div style="position: absolute; background: rgba(85, 15, 15, 0.411); height: 100%; width: 100%; top: 0; left: 0;"
+            [ngStyle]="{ 'width': raid.update?.hp ? raid.update?.hp + '%' : '0%' }"></div> -->
+        <div class="row align-items-center g-2">
+            <!-- <div class="col-auto" [matTooltip]="raid.twitterUser.name">
+            <img height="25px" [src]="raid.twitterUser.imgUrl === 'a' ? 'https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png' : 'https://pbs.twimg.com/profile_images/' + raid.twitterUser.imgUrl "/>
+          </div> -->
+            <div class="col">
+                <mat-text style="font-size: 1.15rem">{{raid.battleKey}}</mat-text>
+            </div>
+            <div class="col-auto">
+                <mat-text style="font-size: 0.8rem">{{raid.created_at | timeago}}</mat-text>
+            </div>
+            <div class="col-auto">
+                <mat-icon>{{raid.update && !settingsService.settings.copyOnly ? 'exit_to_app' : 'content_copy'}}
+                </mat-icon>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {{raid.message}}
+            </div>
+        </div>
+        <div class="row mt-2 align-items-end" *ngIf="raid.update">
+            <div class="col">
+                <mat-progress-bar mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
+            </div>
+        </div>
+        <!-- <div class="col-auto" style="line-height: 0.1rem;"> {{raid.update?.hp}}% </div> -->
+        <div class="row mt-2 flex-nowrap gx-2" *ngIf="raid.update">
+            <div class="col d-flex align-items-center">{{raid.update?.hp}}% </div>
+            <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
+            <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
+            <div class="col-auto d-flex align-items-center">
+                <img height="20px" [src]="'assets/icons/' + (raid.update.questHostClass || 'noclass') + '.png'" />
+            </div>
+        </div>
+    </mat-card>
+</ng-template>
+
+<ng-template #statusDebugDialog>
+    <mat-dialog>
+        <div title>Status Debug</div>
+        <mat-divider class="my-3"></mat-divider>
+        <div class="row">
+            <div class="col">
+                Last Status Recieved: {{ lastStatusRecievedAt | timeago }}
+            </div>
+        </div>
+        <mat-divider class="my-3"></mat-divider>
+        <div class="row flex-column">
+            <div class="col">
+                Users Connected: {{ status.socketStatus.usersConnected }}
+            </div>
+            <div class="col">
+                Last Tweet Recieved: {{ status.raidStatus.tweetStatus.lastTweetRecievedAt ?
+                (status.raidStatus.tweetStatus.lastTweetRecievedAt | timeago) : 'None' }}
+            </div>
+            <div class="col">
+                Last Tweet Source Recieved: {{ status.raidStatus.tweetStatus.lastTweetSourceRecievedAt ?
+                (status.raidStatus.tweetStatus.lastTweetSourceRecievedAt | timeago) : 'None' }}
+            </div>
+        </div>
+        <mat-divider class="my-3"></mat-divider>
+        <div class="row flex-column">
+            <div class="col" *ngFor="let gbrStatus of status.raidStatus.gbrStatus; let i=index">
+                GBR {{i}}: {{ gbrStatus ? (gbrStatus | timeago) : 'None' }}
+            </div>
+        </div>
+        <mat-divider class="my-3"></mat-divider>
+    </mat-dialog>
+</ng-template>
+
+<ng-template #infoDialog>
+    <mat-dialog height="large">
+        <div title>Info</div>
+        <mat-card class="bg-2 mt-2"> For any questions or concerns you can contact me directly on discord: NthMetal#5000
+        </mat-card>
+        <mat-card class="bg-2 my-3 d-flex align-items-center">
+            <mat-icon class="me-3 material-icons-outlined"> {{settingsService.maintinance.icon }} </mat-icon>
+            {{ settingsService.maintinance.message }}
+        </mat-card>
+        <mat-card class="bg-2 my-3 d-flex align-items-center">
+            <a href="https://github.com/NthMetal/gbraidfinder" target="_blank">
+                <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
+                    <img src="assets/icons/github-logo.svg" />
+                </button>
+            </a>
+            If you're interested in contributing or reporting bugs, visit the github!
+        </mat-card>
+        <mat-card class="bg-2 my-3">
+            <div class="row">
+                <div class="col">
+                    If you want to support the project consider sending some Bitcoin.
+                    All donations go directly to server costs.
+                </div>
+            </div>
+            <div matRipple [matRippleCentered]="true" matRippleColor="#00000020"
+                class="align-items-center bg-1 mx-3 mt-3 p-3 row" style="cursor: pointer;"
+                (click)="copyTextToClipboard(bitcoinAddressToDisplay)">
+                <div class="col">
+                    {{ bitcoinAddressToDisplay }}
+                </div>
+                <div class="col-auto">
+                    <mat-icon>content_copy</mat-icon>
+                </div>
+            </div>
+
+        </mat-card>
+    </mat-dialog>
+</ng-template>
+
+<ng-template #raidDialog>
+    <mat-dialog height="large">
+        <div title>Add Raid</div>
+        <!-- <div class="row my-2">
+        <div class="col">
+          <mat-button-toggle-group appearance="legacy" multiple name="element" class="w-100">
+            <mat-button-toggle class="w-100" *ngFor="let element of elements" [value]="element">
+              <img [src]="'assets/icons/' + element + '.png'"/>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+      </div> -->
+        <div class="row mt-3">
+            <div class="col">
+                <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>Search Raids</mat-label>
+                    <input matInput placeholder="ex: Shiva (Impossible) or シヴァＨＬ or Fire" [(ngModel)]="raidSearch"
+                        (ngModelChange)="raidSearchSubject.next($event)">
+                    <mat-icon class="mr-2" matPrefix>search&nbsp;</mat-icon>
+                </mat-form-field>
+                <!-- <mat-form-field class="w-100" appearance="outline">
+            <mat-chip-list #chipList>
+              <mat-chip style="display: none;">ayy lmao</mat-chip>
+              <img class="raid-card mx-1 mb-1" *ngFor="let subbedRaid of subscribedRaids" (click)="remove(subbedRaid)" height="45px" [src]="'assets/thumb/' + subbedRaid.quest_id + '.png'"/>
+              <input
+                placeholder="Search Raids"
+                #searchInput
+                [formControl]="subbedQuestsCtrl"
+                [matAutocomplete]="auto"
+                [matChipInputFor]="chipList"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                matChipInputAddOnBlur
+                (matChipInputTokenEnd)="add($event)">
+            </mat-chip-list>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
+              <mat-option *ngFor="let raid of filteredQuests | async" [value]="raid">
+                <div class="d-flex align-items-center">
+                  <img height="45px" [src]="'assets/thumb/' + raid.quest_id + '.png'"/>&nbsp;{{raid.quest_name_en}}
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field> -->
+            </div>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="row my-2">
+            <div class="col">
+                <mat-button-toggle-group appearance="legacy" name="type" #typeGroup="matButtonToggleGroup" class="w-100"
+                    value="2">
+                    <mat-button-toggle class="w-100" value="1">Standard</mat-button-toggle>
+                    <mat-button-toggle class="w-100" value="2">Impossible</mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
+        </div>
+        <!-- <div class="row my-2">
+        <mat-card class="col-2 h-100" *ngFor="let raid of raid_metadata" [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover'}">
+          {{raid.quest_name_en}}
+        </mat-card>
+      </div> -->
+        <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '1'">
+            <div class="col">
+                <div class="row my-3 w-100" *ngFor="let difficulty of standardDifficulties">
+                    <div class="raid-card col-auto my-1 mx-2" [matTooltip]="raid.quest_name_en"
+                        [ngClass]="{'raid-selected': raid.selected}"
+                        *ngFor="let raid of raidSearchFiltered.standard[difficulty]"
+                        [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
+                        (click)="toggleRaid(raid.quest_id)">
+                        <!-- <img [src]="'assets/thumb/' + raid.quest_id + '.png'" (click)="toggleRaid(raid.quest_id)"/> -->
+                        <!-- {{raid.quest_name_en}} -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '2'">
+            <div class="col">
+                <div class="row my-3 w-100" *ngFor="let difficulty of impossibleDifficulties">
+                    <div class="raid-card col-auto my-1 mx-2" [matTooltip]="raid.quest_name_en"
+                        [ngClass]="{'raid-selected': raid.selected}"
+                        *ngFor="let raid of raidSearchFiltered.impossible[difficulty]"
+                        [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover', 'height': '63px', 'width': '90px', 'position': 'relative'}"
+                        (click)="toggleRaid(raid.quest_id)">
+                        <!-- <img [src]="'assets/thumb/' + raid.quest_id + '.png'" (click)="toggleRaid(raid.quest_id)"/> -->
+                        <!-- {{raid.quest_name_en}} -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </mat-dialog>
+</ng-template>
+
+<ng-template #settingsBottomSheet>
+    <form #settingsForm="ngForm" novalidate>
+        <!-- QuickJoin raid settings -->
+        <div class="ms-3 mt-2 font-0">RAID SETTINGS</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    Copy Battle Key
+                </div>
+                <div class="col-auto">
+                    <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.copyOnly" name="copyOnly">
+                    </mat-slide-toggle>
+                </div>
+            </div>
+        </mat-card>
+        <!-- QuickJoin Options -->
+        <mat-card class="mt-1 bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    {{ settingsService.settings.copyOnly ? 'Copy and Open GBF' : 'Always open in new tab.' }}
+                </div>
+                <div class="col-auto">
+                    <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.openInTab" name="openInTab">
+                    </mat-slide-toggle>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
+            Clicking a raid will {{ settingsService.settings.copyOnly ? 'copy the battle key' : 'go to the summon
+            select'}}
+            {{ settingsService.settings.copyOnly && settingsService.settings.openInTab ? 'and then open GBF' : '' }}
+            {{ !settingsService.settings.copyOnly ? settingsService.settings.openInTab ? 'in a new tab' : 'in an
+            existing tab' : '' }}
+        </div>
+
+        <!-- Removing Raids -->
+        <div class="ms-3 mt-4 font-0">Remove Raid Settings</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    <mat-form-field class="w-100">
+                        <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterSeconds"
+                            name="removeRaidsAfterSeconds">
+                        <mat-hint>Remove Raids after seconds</mat-hint>
+                    </mat-form-field>
+                </div>
+                <div class="col">
+                    <mat-form-field class="w-100">
+                        <input matInput type="number" [(ngModel)]="settingsService.settings.removeRaidsAfterLimit"
+                            name="removeRaidsAfterLimit">
+                        <mat-hint>Remove Raids if list has more than</mat-hint>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
+            Raids will be removed after {{settingsService.settings.removeRaidsAfterSeconds}} seconds or if there are
+            {{settingsService.settings.removeRaidsAfterLimit}} raids on the list.
+        </div>
+
+        <!-- Desktop Notifications -->
+        <div class="ms-3 mt-4 font-0">Global Notification Settings</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    Desktop Notifications
+                </div>
+                <div class="col-auto">
+                    <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.notificationsEnabled"
+                        name="notificationsEnabled"></mat-slide-toggle>
+                </div>
+            </div>
+        </mat-card>
+        <!-- <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Desktop Notifications will appear for raids (must be enabled for chrome)</div> -->
+
+        <!-- Sounds -->
+        <div class="ms-3 mt-4 font-0">Global Sound Settings</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    Sounds
+                </div>
+                <div class="col-auto">
+                    <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.soundEnabled"
+                        name="soundEnabled"></mat-slide-toggle>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0">Volume</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    <ngx-slider [(value)]="settingsService.settings.soundVolume" name="soundVolume" [options]="{
+              floor: 0,
+              ceil: 1,
+              step: 0.01
+            }"></ngx-slider>
+                </div>
+            </div>
+        </mat-card>
+        <!-- <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">sound notifications</div> -->
+
+        <!-- HP Filter -->
+        <div class="ms-3 mt-4 font-0">HP Filter</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    <ngx-slider [(value)]="settingsService.settings.minHP"
+                        [(highValue)]="settingsService.settings.maxHP" [options]="{
+              floor: 0,
+              ceil: 100
+            }"></ngx-slider>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Only raids with HP between
+            {{settingsService.settings.minHP}} and {{settingsService.settings.maxHP}} will be shown.</div>
+
+        <!-- Player Filter -->
+        <div class="ms-3 mt-4 font-0">Player Filter</div>
+        <mat-card class="bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    <ngx-slider [(value)]="settingsService.settings.minPlayers"
+                        [(highValue)]="settingsService.settings.maxPlayers" [options]="{
+              floor: 1,
+              ceil: 30,
+              ticksArray: [6, 18]
+            }"></ngx-slider>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Only raids with {{settingsService.settings.minPlayers}}
+            to {{settingsService.settings.maxPlayers}} players will be shown.</div>
+    </form>
+</ng-template>
