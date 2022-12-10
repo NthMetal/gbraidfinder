@@ -219,7 +219,7 @@ export class StatsService implements OnModuleInit {
                         }
                     }
                 });
-                this.collections[raid.quest_id].bulkWrite(bulkWriteOperation).then(result => { });
+                if (bulkWriteOperation.length) this.collections[raid.quest_id].bulkWrite(bulkWriteOperation).then(result => { });
             });
 
             // reset stats
@@ -266,7 +266,7 @@ export class StatsService implements OnModuleInit {
         // _id: "6391558775afde316191df18"
 
         const reduced = [];
-        let currentDate = start;
+        let currentDate = new Date(Math.max(start.getTime(), 1670691021000));
         while (currentDate <= end) {
             const current = {
                 timestamp: currentDate,
