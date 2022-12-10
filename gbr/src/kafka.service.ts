@@ -61,6 +61,19 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               return acc;
             }, {});
             console.log(offsetWeights);
+            const tempOffsetWeights = {
+              l80: 2990,
+              l30: 319,
+              l150: 25265,
+              l120: 100499,
+              l170: 3247,
+              l20: 2,
+              l130: 15595,
+              l151: 31999,
+              l200: 24856,
+              l101: 58710,
+              l40: 2384
+            }
             // assignment[assignee]  {
             //   l200: [
             //     0,  2,  4, 6,
@@ -78,7 +91,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               if (!assignment[assignee]) return 0;
               return Object.entries(assignment[assignee]).reduce((acc, curr) => {
                 // curr  [ 'l101', [ 12 ]]
-                const weight = offsetWeights[curr[0]] || 1;
+                const weight = Math.max(offsetWeights[curr[0]] || 1, tempOffsetWeights[curr[0]] || 1);
                 acc += weight * curr[1].length
                 return acc;
               }, 0);
