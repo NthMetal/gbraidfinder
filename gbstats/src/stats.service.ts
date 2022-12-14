@@ -5,6 +5,7 @@ import { KafkaService } from './kafka.service';
 import { v4 as uuidv4 } from 'uuid';
 
 import * as fs from 'fs';
+import e from 'express';
 
 @Injectable()
 export class StatsService implements OnModuleInit {
@@ -254,8 +255,14 @@ export class StatsService implements OnModuleInit {
                 $lt: end
             }
         }).toArray();
-        if (!query.length) return [];
+        // if (!query.length) return [];
 
+        // const earliestDate = query.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))[0];
+        // let earliestDateToUse = earliestDate.timestam;
+        // if (new Date(earliestDateToUse).getTime() > 1670040198000) {
+        //     earliestDateToUse = new Date(1670040198000)
+        // }
+        // console.log(start, earliestDate);
         // class: {59707: 1, 69995: 1, 116699: 1, 144203: 1, 159684: 1, 183503: 1, 202018: 1, 225847: 1, 297480: 1,…}
         // count: 167
         // hpSum: 1300
@@ -266,7 +273,9 @@ export class StatsService implements OnModuleInit {
         // _id: "6391558775afde316191df18"
 
         const reduced = [];
-        let currentDate = new Date(Math.max(start.getTime(), 1670691021000));
+        let currentDate = start; // new Date(Math.max(start.getTime(), 1670691021000));
+        // 1670385798000
+        // console.log('looking for :', start.getTime(), currentDate.getTime(), end.getTime())
         while (currentDate <= end) {
             const current = {
                 timestamp: currentDate,
@@ -281,21 +290,22 @@ export class StatsService implements OnModuleInit {
 
             for(let i=0; i<query.length; i++) {
                 const record = query[i];
-                if (!record) return;
-                const recordTimestamp = new Date(record.timestamp);
-                if (recordTimestamp >= currentDate && recordTimestamp <= nextInterval) {
-                    current.count += record.count;
-                    current.hpSum += record.hpSum;
-                    current.playerSum += record.playerSum;
-                    current.timeLeftSum += record.timeLeftSum;
-                    current.updateCount += record.updateCount;
-
-                    Object.entries(record.class || {}).forEach(([userClass, count]) => {
-                        if (!current.class) current.class = {};
-                        if (!current.class[userClass]) current.class[userClass] = 0;
-                        current.class[userClass] += count;
-                    });
-                    query.splice(i,1);
+                if (record) {
+                    const recordTimestamp = new Date(record.timestamp);
+                    if (recordTimestamp >= currentDate && recordTimestamp <= nextInterval) {
+                        current.count += record.count;
+                        current.hpSum += record.hpSum;
+                        current.playerSum += record.playerSum;
+                        current.timeLeftSum += record.timeLeftSum;
+                        current.updateCount += record.updateCount;
+    
+                        Object.entries(record.class || {}).forEach(([userClass, count]) => {
+                            if (!current.class) current.class = {};
+                            if (!current.class[userClass]) current.class[userClass] = 0;
+                            current.class[userClass] += count;
+                        });
+                        query.splice(i,1);
+                    }
                 }
             }
 

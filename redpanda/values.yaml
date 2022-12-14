@@ -174,7 +174,7 @@ resources:
       # Minimum memory count for each Redpanda broker
       # Equivalent to: resources.limits.memory
       # For production: 10Gi or greater
-      max: 2.5Gi
+      max: 3Gi
     #
     # redpanda:
       # This optional redpanda section allows specifying the memory size for both the Redpanda
@@ -221,7 +221,7 @@ storage:
     # If undefined or empty (default), then no `storageClassName` spec is set,
     # so the default provisioner will be chosen (gp2 on AWS, standard on
     # GKE, AWS & OpenStack).
-    storageClass: ""
+    storageClass: "-"
     # Additional labels to apply to the created PersistentVolumeClaims.
     labels: {}
     # Additional annotations to apply to the created PersistentVolumeClaims.
@@ -249,7 +249,7 @@ post_upgrade_job: {}
 
 statefulset:
   # Number of Redpanda brokers (recommend setting this to the number of nodes in the cluster)
-  replicas: 3
+  replicas: 2
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel
