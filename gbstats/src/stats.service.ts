@@ -23,7 +23,7 @@ export class StatsService implements OnModuleInit {
                 add_hpSum: number,
                 add_playerSum: number,
                 add_timeLeftSum: number,
-                add_class: { [add_classId: string]: number }
+                // add_class: { [add_classId: string]: number }
             }
         }
     } = {}
@@ -34,7 +34,7 @@ export class StatsService implements OnModuleInit {
             add_hpSum: number,
             add_playerSum: number,
             add_timeLeftSum: number,
-            add_class: { [add_classId: string]: number }
+            // add_class: { [add_classId: string]: number }
         }
     } = {}
     collections: { [questId: string]: Collection<any> } = {}
@@ -70,7 +70,7 @@ export class StatsService implements OnModuleInit {
                         add_hpSum: 0,
                         add_playerSum: 0,
                         add_timeLeftSum: 0,
-                        add_class: {}
+                        // add_class: {}
                     }
                 }
             }
@@ -81,7 +81,7 @@ export class StatsService implements OnModuleInit {
                     add_hpSum: 0,
                     add_playerSum: 0,
                     add_timeLeftSum: 0,
-                    add_class: {}
+                    // add_class: {}
                 }
             }
 
@@ -94,7 +94,7 @@ export class StatsService implements OnModuleInit {
                     add_hpSum: 0,
                     add_playerSum: 0,
                     add_timeLeftSum: 0,
-                    add_class: {}
+                    // add_class: {}
                 }
             }
             this.allSegmentStats[timeId.getTime()].add_count++;
@@ -124,7 +124,7 @@ export class StatsService implements OnModuleInit {
                         add_hpSum: 0,
                         add_playerSum: 0,
                         add_timeLeftSum: 0,
-                        add_class: {}
+                        // add_class: {}
                     }
                 }
             }
@@ -135,7 +135,7 @@ export class StatsService implements OnModuleInit {
                     add_hpSum: 0,
                     add_playerSum: 0,
                     add_timeLeftSum: 0,
-                    add_class: {}
+                    // add_class: {}
                 }
             }
 
@@ -152,10 +152,10 @@ export class StatsService implements OnModuleInit {
                 +timeLeftSegments[2]
             this.currentSegmentStats[update.questID][timeId.getTime()].add_timeLeftSum += timeLeft;
 
-            if (!this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]) {
-                this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass] = 0
-            }
-            this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]++;
+            // if (!this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]) {
+            //     this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass] = 0
+            // }
+            // this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]++;
 
 
             if (!this.allSegmentStats[timeId.getTime()]) {
@@ -165,17 +165,17 @@ export class StatsService implements OnModuleInit {
                     add_hpSum: 0,
                     add_playerSum: 0,
                     add_timeLeftSum: 0,
-                    add_class: {}
+                    // add_class: {}
                 }
             }
             this.allSegmentStats[timeId.getTime()].add_updateCount++;
             this.allSegmentStats[timeId.getTime()].add_hpSum += +update.hp;
             this.allSegmentStats[timeId.getTime()].add_playerSum += players;
             this.allSegmentStats[timeId.getTime()].add_timeLeftSum += timeLeft;
-            if (!this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass]) {
-                this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass] = 0
-            }
-            this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass]++;
+            // if (!this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass]) {
+            //     this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass] = 0
+            // }
+            // this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass]++;
             // {
             //     resultStatus: 'success',
             //     link: '#quest/supporter_raid/30467231476/305171/1/3/0/6',
@@ -199,10 +199,10 @@ export class StatsService implements OnModuleInit {
                 if (!statsAccessor) return;
 
                 const bulkWriteOperation = Object.entries(statsAccessor).map(([time, additions]) => {
-                    const classUpdate = Object.entries(additions.add_class).reduce((acc, [classId, add_classCount]) => {
-                        acc['class.' + classId] = add_classCount
-                        return acc;
-                    }, {});
+                    // const classUpdate = Object.entries(additions.add_class).reduce((acc, [classId, add_classCount]) => {
+                    //     acc['class.' + (classId || 0)] = add_classCount || 0
+                    //     return acc;
+                    // }, {});
                     return {
                         updateOne: {
                             filter: { timestamp: new Date(+time) },
@@ -213,7 +213,7 @@ export class StatsService implements OnModuleInit {
                                     hpSum: additions.add_hpSum,
                                     playerSum: additions.add_playerSum,
                                     timeLeftSum: additions.add_timeLeftSum,
-                                    ...classUpdate
+                                    // ...classUpdate
                                 }
                             },
                             upsert: true
@@ -287,7 +287,7 @@ export class StatsService implements OnModuleInit {
                 playerSum: 0,
                 timeLeftSum: 0,
                 updateCount: 0,
-                class: {}
+                // class: {}
             };
             // console.log('--------------------------------------------------------------------------------------------')
             // console.log(currentStart.getTime() / 1000)
@@ -304,11 +304,11 @@ export class StatsService implements OnModuleInit {
                         current.timeLeftSum += record.timeLeftSum;
                         current.updateCount += record.updateCount;
     
-                        Object.entries(record.class || {}).forEach(([userClass, count]) => {
-                            if (!current.class) current.class = {};
-                            if (!current.class[userClass]) current.class[userClass] = 0;
-                            current.class[userClass] += count;
-                        });
+                        // Object.entries(record.class || {}).forEach(([userClass, count]) => {
+                        //     if (!current.class) current.class = {};
+                        //     if (!current.class[userClass]) current.class[userClass] = 0;
+                        //     current.class[userClass] += count;
+                        // });
                     }
                 }
             }
