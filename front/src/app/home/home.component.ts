@@ -256,6 +256,7 @@ export class HomeComponent implements OnInit {
 
   ngOnDestroy() {
     if (this.formChangesSubscription) this.formChangesSubscription.unsubscribe();
+    this.dragulaService.destroy('DRAGABLE_COLUMNS');
   }
 
   /**

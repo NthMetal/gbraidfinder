@@ -7,7 +7,7 @@
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
-            <div class="col-auto d-flex align-items-center" (click)="gotoStats()">
+            <div class="col-auto d-flex align-items-center">
                 <div *ngIf="socketioService.connected" matTooltip="online" style="padding: 4px;
           margin: 8px;
           border-radius: 100%;
@@ -37,6 +37,11 @@
                     <mat-icon class="material-icons-outlined"
                         [matBadge]="!settingsService.maintinance.notify ? '' : settingsService.maintinance.notify"
                         matBadgeSize="small" matBadgeColor="warn">info</mat-icon>
+                </button>
+            </div>
+            <div class="col-auto">
+                <button mat-mini-fab color="primary" (click)="gotoStats()">
+                    <mat-icon>insights</mat-icon>
                 </button>
             </div>
             <div class="col-auto">
