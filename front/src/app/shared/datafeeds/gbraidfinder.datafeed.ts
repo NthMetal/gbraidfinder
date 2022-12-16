@@ -63,10 +63,15 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         tweet_name_jp: "全て 討伐戦"
     };
 
+    subscribedSymbols: Set<string> = new Set<string>();
+    subscribedSymbolValues: { [symbol: string]: number } = {};
+    subscriptionInterval: any;
+    resetInterval: any;
+
     constructor(protected metadataService: MetadataService,) { }
 
     public onReady(callback: OnReadyCallback) {
-        console.log('chart is ready');
+        // console.log('chart is ready');
         const config: DatafeedConfiguration = {
             exchanges: [],
             supported_resolutions: this.temp_resolutions,
@@ -100,9 +105,11 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         // timeLeftSum: 0
         // timestamp: "2022-12-14T23:00:11.000Z"
         // updateCount: 0
-        this.metadataService.getRaidMetadata().subscribe(metadata => {
-            if (config.exchanges) config.exchanges.push({ value: '', name: 'Any', desc: 'Search any coin.' });
-            callback(config);
+        setTimeout(() => {
+            this.metadataService.getRaidMetadata().subscribe(metadata => {
+                if (config.exchanges) config.exchanges.push({ value: '', name: 'Any', desc: 'Search any coin.' });
+                callback(config);
+            });
         });
         // const pair = 'BTCUSD';
         // this.socketIoService.subscribePair(pair);
@@ -134,7 +141,7 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         symbolType: string,
         onResult: SearchSymbolsCallback
     ) {
-        console.log('the user searched for: ', userInput, exchange, symbolType);
+        // console.log('the user searched for: ', userInput, exchange, symbolType);
         this.metadataService.getRaidMetadata().subscribe(metadata => {
             const matchingRaids = [this.allRaidsItem, ...metadata].filter((raid: any) => JSON.stringify(raid).toLowerCase().includes(userInput.toLowerCase()));
             setTimeout(() => {
@@ -203,14 +210,14 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         onError: ErrorCallback,
         extension?: SymbolResolveExtension
     ) {
-        console.log('BBBBBBBBBBBBBBBBB resolving symbol: ', symbolName, extension);
+        // console.log('BBBBBBBBBBBBBBBBB resolving symbol: ', symbolName, extension);
         const [ raidQuestId, statType ] = symbolName.split(':');
         this.metadataService.getRaidMetadata().subscribe(metadata => {
             let raid = [this.allRaidsItem, ...metadata].find(raid => raid.quest_id === raidQuestId.toLowerCase());
             setTimeout(() => {
                 if (!raid) return onError('idksomething');
                 // if (!raid) return onError('cannot find: ' + symbolName);
-                console.log('LOOKING FORSSSSSSSSSSSSSSSSSSSSS:', symbolName);
+                // console.log('LOOKING FORSSSSSSSSSSSSSSSSSSSSS:', symbolName);
                 const symbolInfo: LibrarySymbolInfo = {
                     name: raid.quest_name_en,
                     full_name: raid.quest_id,
@@ -258,36 +265,21 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         onResult: HistoryCallback,
         onError: ErrorCallback
     ) {
-        console.log('AAAAAAAAAAAAA getting bars.....')
-        console.log('AAAAAAAAAAAAA subscribing to ', symbolInfo);
-        console.log('AAAAAAAAAAAAA with resolution: ', resolution);
-        console.log('AAAAAAAAAAAAA period params: ', periodParams);
+        // console.log('AAAAAAAAAAAAA getting bars.....')
+        // console.log('AAAAAAAAAAAAA subscribing to ', symbolInfo);
+        // console.log('AAAAAAAAAAAAA with resolution: ', resolution);
+        // console.log('AAAAAAAAAAAAA period params: ', periodParams);
 
         const data = await this.metadataService.getHistoricalStats(symbolInfo.listed_exchange, new Date(periodParams.from * 1000), new Date(periodParams.to * 1000), periodParams.countBack);
         onResult(
             data.map((item: any) => {
 
-                let stat = item.count;
+                const stat = this.getStatFromData(symbolInfo.type, item);
                 // { name: 'Count', value: 'COUNT' },
                 // { name: 'HP', value: 'HP' },
                 // { name: 'Players', value: 'PLAYERS' },
                 // { name: 'TimeLeft', value: 'TIMELEFT' },
-                switch (symbolInfo.type) {
-                    case 'COUNT':
-                        stat = item.count;
-                        break;
-                    case 'HP':
-                        stat = item.updateCount === 0 ? 0 : item.hpSum / item.updateCount;
-                        break;
-                    case 'PLAYERS':
-                        stat = item.updateCount === 0 ? 0 : item.playerSum / item.updateCount;;
-                        break;
-                    case 'TIMELEFT':
-                        stat = item.updateCount === 0 ? 0 : item.timeLeftSum / item.updateCount;;
-                        break;
-                    default:
-                        stat = item.count;
-                }
+                
                 return {
                     time: new Date(item.timestamp).getTime(),
                     open: stat,
@@ -332,6 +324,54 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         // console.log('subscribing to ', symbolInfo);
         // console.log('with resolution: ', resolution);
         // console.log('listener guid: ', listenerGuid);
+        // if (this.subscriptionInterval) clearInterval(this.subscriptionInterval);
+        // if (symbolInfo.ticker) {
+        //     this.subscribedSymbols.add(symbolInfo.ticker);
+        //     this.subscribedSymbolValues[symbolInfo.ticker] = 0;
+        // }
+        // this.subscriptionInterval = setInterval(async () => {
+        //     // const random = Math.floor(Math.random() * 10000);
+        //     const data = await this.metadataService.getHistoricalStats(symbolInfo.full_name, new Date(new Date().getTime() - (1000 * 60 * 1.5)), new Date(), 1);
+        //     if (!data.length) return;
+        //     const stat = this.getStatFromData(symbolInfo.exchange, data[0])
+        //     if (symbolInfo.ticker) {
+        //         this.subscribedSymbolValues[symbolInfo.ticker] += stat;
+        //         onTick({
+        //             time: new Date().getTime(),
+        //             open: this.subscribedSymbolValues[symbolInfo.ticker],
+        //             high: this.subscribedSymbolValues[symbolInfo.ticker],
+        //             low: this.subscribedSymbolValues[symbolInfo.ticker],
+        //             close: this.subscribedSymbolValues[symbolInfo.ticker],
+        //             volume: data[0].updateCount
+        //         });
+        //     }
+        // }, 1000 * 60);
+
+        // if (this.resetInterval) clearInterval(this.resetInterval);
+        // const resolutionMap = {
+        //     '1': 1000 * 60 * 1,
+        //     '3': 1000 * 60 * 3,
+        //     '5': 1000 * 60 * 5,
+        //     '15': 1000 * 60 * 15,
+        //     '30': 1000 * 60 * 30,
+        //     '60': 1000 * 60 * 60,
+        //     '69': 1000 * 60 * 69,
+        //     '120': 1000 * 60 * 120,
+        //     '240': 1000 * 60 * 240,
+        //     '360': 1000 * 60 * 360,
+        //     '480': 1000 * 60 * 480,
+        //     '720': 1000 * 60 * 720,
+        //     '1D': 1000 * 60 * 60 * 24 * 1,
+        //     '2D': 1000 * 60 * 60 * 24 * 2,
+        //     '3D': 1000 * 60 * 60 * 24 * 3,
+        //     '4D': 1000 * 60 * 60 * 24 * 4,
+        //     '1W': 1000 * 60 * 60 * 24 * 7,
+        //     '1M': 1000 * 60 * 60 * 24 * 30,
+        // };
+        // const parsedResolutionString = resolutionMap[resolution as keyof typeof resolutionMap]
+        // this.resetInterval = setInterval(() => {
+        //     this.subscribedSymbolValues = {};
+        // }, parsedResolutionString);
         // Object.keys(this.subscribedPairs).forEach(pair => {
         //     if (pair !== symbolInfo.name) {
         //         this.subscribedPairs[pair] = undefined;
@@ -358,6 +398,27 @@ export class GBRaidfinderDatafeed implements IBasicDataFeed {
         // // listenerGuiD format example: BTCUSD_#_1
         // const pair = listenerGuid.split('_')[0];
         // if (this?.subscribedPairs[pair]?.length === 0) this.socketIoService.unsubscribePair(pair);
+    }
+
+    private getStatFromData(stat: string, data: any): number {
+        let statRet = data.count;
+        switch (stat) {
+            case 'COUNT':
+                statRet = data.count;
+                break;
+            case 'HP':
+                statRet = data.updateCount === 0 ? 0 : data.hpSum / data.updateCount;
+                break;
+            case 'PLAYERS':
+                statRet = data.updateCount === 0 ? 0 : data.playerSum / data.updateCount;;
+                break;
+            case 'TIMELEFT':
+                statRet = data.updateCount === 0 ? 0 : data.timeLeftSum / data.updateCount;;
+                break;
+            default:
+                statRet = data.count;
+        }
+        return statRet;
     }
 
 }

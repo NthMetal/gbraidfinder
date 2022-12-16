@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Router } from '@angular/router';
 import {
     widget,
     IChartingLibraryWidget,
@@ -84,7 +85,9 @@ export class TvChartContainerComponent implements OnInit, OnDestroy {
     }
 
     constructor(
-        private gBRaidfinderDatafeed: GBRaidfinderDatafeed
+        private gBRaidfinderDatafeed: GBRaidfinderDatafeed,
+        private router: Router,
+        private zone: NgZone
     ) {}
 
     ngOnInit() {
@@ -127,22 +130,18 @@ export class TvChartContainerComponent implements OnInit, OnDestroy {
 
         const tvWidget = new widget(widgetOptions);
         this._tvWidget = tvWidget;
+        
         tvWidget.onChartReady(() => {
             tvWidget.headerReady().then(() => {
-                // const button = tvWidget.createButton();
-                // button.setAttribute('title', 'Significant Trades Settings');
-                // button.classList.add('apply-common-tooltip');
-                // button.addEventListener('click', () => {
-                //     this.settingsService.settingsDialogState.next('open');
-                //     tvWidget.showNoticeDialog({
-                //         title: 'Significant Trade Settings',
-                //         body: 'Modify significant trade settings on the right. </br> Close this dialog when finished.',
-                //         callback: () => {
-                //             this.settingsService.settingsDialogState.next('close');
-                //         },
-                //     })
-                // });
-                // button.innerHTML = '<div id="header-toolbar-properties" data-role="button" class="iconButton-pzOKvpP8 button-2YcRd2gv button-2Vpz_LXc apply-common-tooltip isInteractive-2Vpz_LXc"><span class="icon-2Vpz_LXc"><img src="../../icons/chart-settings-icon.svg"></img></span></div>';
+                const button = tvWidget.createButton();
+                button.setAttribute('title', 'Back To Raid Finder');
+                button.classList.add('apply-common-tooltip');
+                button.addEventListener('click', () => {
+                    this.zone.run(() => {
+                        this.router.navigate(['/home']);
+                    });
+                });
+                button.innerHTML = '<div id="header-toolbar-properties" data-role="button" class="iconButton-pzOKvpP8 button-2YcRd2gv button-2Vpz_LXc apply-common-tooltip isInteractive-2Vpz_LXc"><span class="icon-2Vpz_LXc"><img src="../../../icons/favicon-32x32.png"></img></span></div>';
             });
         });
     }
