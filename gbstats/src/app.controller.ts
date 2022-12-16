@@ -24,7 +24,13 @@ export class AppController {
     @Query('interval') interval,
     @Query('count') count
   ) {
-    return await this.statsService.queryInterval(questId, new Date(+start), new Date(+end), interval, count);
+    return await new Promise<any>(async resolve => {
+      setTimeout(() => {
+        resolve([]);
+      }, 1000 * 60 * 2);
+      const data = await this.statsService.queryInterval(questId, new Date(+start), new Date(+end), interval, count);
+      resolve(data);
+    });
   }
 
 }
