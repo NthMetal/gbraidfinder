@@ -21,9 +21,10 @@ export class AppController {
     @Query('questId') questId,
     @Query('start') start,
     @Query('end') end,
-    @Query('interval') interval
+    @Query('interval') interval,
+    @Query('count') count
   ) {
-    return await this.statsService.queryInterval(questId, new Date(+start), new Date(+end), interval);
+    return await this.statsService.queryInterval(questId, new Date(+start), new Date(+end), interval, count);
   }
 
 }

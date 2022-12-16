@@ -247,7 +247,7 @@ export class StatsService implements OnModuleInit {
      * @param end end date
      * @param interval time interval between each data point in minutes (lowest possible is 1 minute)
      */
-    public async queryInterval(questId: string, start: Date, end: Date, interval: number) {
+    public async queryInterval(questId: string, start: Date, end: Date, interval: number, count: number) {
         const collection = this.collections[questId];
         const query = await collection.find({
             timestamp: {
@@ -255,6 +255,9 @@ export class StatsService implements OnModuleInit {
                 $lt: end
             }
         }).toArray();
+        const diff = end.getTime() - start.getTime(); // amount of milliseconds
+        const timeBetween = Math.floor(diff / count); // time between each interval
+        console.log(timeBetween)
         // if (!query.length) return [];
 
         // const earliestDate = query.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))[0];
@@ -273,12 +276,12 @@ export class StatsService implements OnModuleInit {
         // _id: "6391558775afde316191df18"
 
         const reduced = [];
-        let currentDate = start; // new Date(Math.max(start.getTime(), 1670691021000));
-        // 1670385798000
-        // console.log('looking for :', start.getTime(), currentDate.getTime(), end.getTime())
-        while (currentDate <= end) {
+
+        for (let i=0; i< count; i++) {
+            const currentStart = new Date(start.getTime() + (i * timeBetween));
+            const currentEnd   = new Date(start.getTime() + ((i + 1) * timeBetween));
             const current = {
-                timestamp: currentDate,
+                timestamp: currentStart,
                 count: 0,
                 hpSum: 0,
                 playerSum: 0,
@@ -286,13 +289,15 @@ export class StatsService implements OnModuleInit {
                 updateCount: 0,
                 class: {}
             };
-            const nextInterval = new Date(currentDate.getTime() + (1000 * 60 * interval));
-
-            for(let i=0; i<query.length; i++) {
-                const record = query[i];
+            // console.log('--------------------------------------------------------------------------------------------')
+            // console.log(currentStart.getTime() / 1000)
+            // console.log(currentEnd.getTime() / 1000)
+            for(let j=0; j<query.length; j++) {
+                const record = query[j];
                 if (record) {
                     const recordTimestamp = new Date(record.timestamp);
-                    if (recordTimestamp >= currentDate && recordTimestamp <= nextInterval) {
+                    if (recordTimestamp >= currentStart && recordTimestamp <= currentEnd) {
+                        // console.log('found item: ', recordTimestamp)
                         current.count += record.count;
                         current.hpSum += record.hpSum;
                         current.playerSum += record.playerSum;
@@ -304,41 +309,48 @@ export class StatsService implements OnModuleInit {
                             if (!current.class[userClass]) current.class[userClass] = 0;
                             current.class[userClass] += count;
                         });
-                        query.splice(i,1);
                     }
                 }
             }
 
             reduced.push(current);
-            currentDate = nextInterval;
         }
 
-        // while (query.length > 0) {
-        //     const current = query.pop();
-        //     const foundInterval = reduced.find(record => {
-        //         const startInterval = new Date(record.timestamp);
-        //         const endInterval = new Date(new Date(record.timestamp).getTime() + (1000 * 60 * interval));
-        //         const currentDate = new Date(current.timestamp);
+        // while (currentDate <= end) {
+        //     const current = {
+        //         timestamp: currentDate,
+        //         count: 0,
+        //         hpSum: 0,
+        //         playerSum: 0,
+        //         timeLeftSum: 0,
+        //         updateCount: 0,
+        //         class: {}
+        //     };
+        //     const nextInterval = new Date(currentDate.getTime() + (1000 * 60 * interval));
 
-        //         return currentDate >= startInterval && currentDate <= endInterval;
-        //     });
-
-        //     if (foundInterval) {
-        //         foundInterval.count += current.count;
-        //         foundInterval.hpSum += current.hpSum;
-        //         foundInterval.playerSum += current.playerSum;
-        //         foundInterval.timeLeftSum += current.timeLeftSum;
-        //         foundInterval.updateCount += current.updateCount;
-
-        //         Object.entries(current.class || {}).forEach(([userClass, count]) => {
-        //             if (!foundInterval.class) foundInterval.class = {};
-        //             if (!foundInterval.class[userClass]) foundInterval.class[userClass] = 0;
-        //             foundInterval.class[userClass] += count;
-        //         });
-
-        //     } else {
-        //         reduced.push(current);
+        //     for(let i=0; i<query.length; i++) {
+        //         const record = query[i];
+        //         if (record) {
+        //             const recordTimestamp = new Date(record.timestamp);
+        //             if (recordTimestamp >= currentDate && recordTimestamp <= nextInterval) {
+        //                 current.count += record.count;
+        //                 current.hpSum += record.hpSum;
+        //                 current.playerSum += record.playerSum;
+        //                 current.timeLeftSum += record.timeLeftSum;
+        //                 current.updateCount += record.updateCount;
+    
+        //                 Object.entries(record.class || {}).forEach(([userClass, count]) => {
+        //                     if (!current.class) current.class = {};
+        //                     if (!current.class[userClass]) current.class[userClass] = 0;
+        //                     current.class[userClass] += count;
+        //                 });
+        //                 query.splice(i,1);
+        //             }
+        //         }
         //     }
+
+        //     reduced.push(current);
+        //     currentDate = nextInterval;
         // }
 
         return reduced;
