@@ -18,4 +18,12 @@ export class MetadataService extends ApiService {
   public getRaidMetadata() {
     return this.raid_metadata;
   }
+
+  public getHistoricalStats(questId: string, start: Date, end: Date, count: number) {
+    return new Promise<any>(resolve => {
+      this.get_stats(`/stats?questId=${questId}&start=${start.getTime()}&end=${end.getTime()}&interval=${1}&count=${count}`).subscribe(data => {
+        resolve(data);
+      });
+    });
+  }
 }
