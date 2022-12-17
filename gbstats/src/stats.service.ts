@@ -258,100 +258,35 @@ export class StatsService implements OnModuleInit {
         const diff = end.getTime() - start.getTime(); // amount of milliseconds
         const timeBetween = Math.floor(diff / count); // time between each interval
         console.log(timeBetween)
-        // if (!query.length) return [];
-
-        // const earliestDate = query.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))[0];
-        // let earliestDateToUse = earliestDate.timestam;
-        // if (new Date(earliestDateToUse).getTime() > 1670040198000) {
-        //     earliestDateToUse = new Date(1670040198000)
-        // }
-        // console.log(start, earliestDate);
-        // class: {59707: 1, 69995: 1, 116699: 1, 144203: 1, 159684: 1, 183503: 1, 202018: 1, 225847: 1, 297480: 1,…}
-        // count: 167
-        // hpSum: 1300
-        // playerSum: 392
-        // timeLeftSum: 159840
-        // timestamp: "2022-12-08T03:08:00.000Z"
-        // updateCount: 30
-        // _id: "6391558775afde316191df18"
-
+        
         const reduced = [];
 
-        for (let i=0; i< count; i++) {
+        for (let i=0; i<count; i++) {
             const currentStart = new Date(start.getTime() + (i * timeBetween));
             const currentEnd   = new Date(start.getTime() + ((i + 1) * timeBetween));
             const current = {
                 timestamp: currentStart,
+                timestampEnd: currentEnd,
                 count: 0,
                 hpSum: 0,
                 playerSum: 0,
                 timeLeftSum: 0,
-                updateCount: 0,
-                // class: {}
+                updateCount: 0
             };
-            // console.log('--------------------------------------------------------------------------------------------')
-            // console.log(currentStart.getTime() / 1000)
-            // console.log(currentEnd.getTime() / 1000)
-            for(let j=0; j<query.length; j++) {
-                const record = query[j];
-                if (record) {
-                    const recordTimestamp = new Date(record.timestamp);
-                    if (recordTimestamp >= currentStart && recordTimestamp <= currentEnd) {
-                        // console.log('found item: ', recordTimestamp)
-                        current.count += record.count;
-                        current.hpSum += record.hpSum;
-                        current.playerSum += record.playerSum;
-                        current.timeLeftSum += record.timeLeftSum;
-                        current.updateCount += record.updateCount;
-    
-                        // Object.entries(record.class || {}).forEach(([userClass, count]) => {
-                        //     if (!current.class) current.class = {};
-                        //     if (!current.class[userClass]) current.class[userClass] = 0;
-                        //     current.class[userClass] += count;
-                        // });
-                    }
-                }
-            }
 
             reduced.push(current);
         }
 
-        // while (currentDate <= end) {
-        //     const current = {
-        //         timestamp: currentDate,
-        //         count: 0,
-        //         hpSum: 0,
-        //         playerSum: 0,
-        //         timeLeftSum: 0,
-        //         updateCount: 0,
-        //         class: {}
-        //     };
-        //     const nextInterval = new Date(currentDate.getTime() + (1000 * 60 * interval));
-
-        //     for(let i=0; i<query.length; i++) {
-        //         const record = query[i];
-        //         if (record) {
-        //             const recordTimestamp = new Date(record.timestamp);
-        //             if (recordTimestamp >= currentDate && recordTimestamp <= nextInterval) {
-        //                 current.count += record.count;
-        //                 current.hpSum += record.hpSum;
-        //                 current.playerSum += record.playerSum;
-        //                 current.timeLeftSum += record.timeLeftSum;
-        //                 current.updateCount += record.updateCount;
-    
-        //                 Object.entries(record.class || {}).forEach(([userClass, count]) => {
-        //                     if (!current.class) current.class = {};
-        //                     if (!current.class[userClass]) current.class[userClass] = 0;
-        //                     current.class[userClass] += count;
-        //                 });
-        //                 query.splice(i,1);
-        //             }
-        //         }
-        //     }
-
-        //     reduced.push(current);
-        //     currentDate = nextInterval;
-        // }
+        for (let record of query) {
+            const recordTimestamp = new Date(record.timestamp).getTime();
+            const matchingIndex = Math.floor((recordTimestamp - start.getTime()) / timeBetween);
+            const current = reduced[matchingIndex];
+            current.count += record.count;
+            current.hpSum += record.hpSum;
+            current.playerSum += record.playerSum;
+            current.timeLeftSum += record.timeLeftSum;
+            current.updateCount += record.updateCount;
+        }
 
         return reduced;
     }
