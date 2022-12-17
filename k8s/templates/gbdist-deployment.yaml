@@ -14,6 +14,18 @@ spec:
       labels:
         app: gbdist
     spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - gbdist
+              topologyKey: "kubernetes.io/hostname"
       containers:
       - name: gbdist
         image: 833642098503.dkr.ecr.us-east-2.amazonaws.com/gbdist-containers:latest
