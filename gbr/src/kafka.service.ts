@@ -1,6 +1,6 @@
 import { Injectable, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { Cluster } from '@nestjs/microservices/external/kafka.interface';
-import { Admin, Consumer, GroupMember, GroupMemberAssignment, GroupState, Kafka, Producer, AssignerProtocol } from 'kafkajs';
+import { Admin, Consumer, GroupMember, GroupMemberAssignment, GroupState, Kafka, Producer, AssignerProtocol, RetryOptions } from 'kafkajs';
 import { v4 as uuidv4 } from 'uuid';
 import { AppService } from './app.service';
 import { ConfigService } from './config.service';
@@ -11,6 +11,11 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   private readonly producer: Producer;
   private readonly consumer: Consumer;
   private readonly admin: Admin;
+  private readonly retry: RetryOptions = {
+    retries: Number.MAX_SAFE_INTEGER
+  };
+
+  private connected: Boolean = false;
 
   constructor(
     private readonly appService: AppService,
@@ -18,12 +23,14 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   ) {
     this.kafka = new Kafka({
       clientId: `gbr-${this.appService.getAccount().rank}-${uuidv4()}`,
-      brokers: this.configService.config.redpandaBrokers
+      brokers: this.configService.config.redpandaBrokers,
+      retry: this.retry
     });
-    this.producer = this.kafka.producer({ allowAutoTopicCreation: true });
+    this.producer = this.kafka.producer({ allowAutoTopicCreation: true, retry: this.retry });
     this.consumer = this.kafka.consumer({ 
       groupId: 'gbr',
       allowAutoTopicCreation: true,
+      retry: this.retry,
       partitionAssigners: [
         (config: {
           cluster: Cluster
@@ -148,6 +155,15 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
       ]
     });
     this.admin    = this.kafka.admin();
+
+    this.producer.on('producer.disconnect', () => {
+      console.log('Producer Disonnected');
+      this.connected = false;
+    });
+    this.producer.on('producer.connect', () => {
+      console.log('Producer Connected');
+      this.connected = true;
+    });
   }
 
   async onApplicationShutdown(signal?: string) {
@@ -231,6 +247,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
    * Sends a restart event to member_events topic
    */
   private async sendMemberEvent() {
+    if (!this.connected) return;
     await this.producer.send({
       topic: `member_events`,
       // topic: 'chat-room',
