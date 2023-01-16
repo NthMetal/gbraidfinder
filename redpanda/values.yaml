@@ -174,7 +174,7 @@ resources:
       # Minimum memory count for each Redpanda broker
       # Equivalent to: resources.limits.memory
       # For production: 10Gi or greater
-      max: 3Gi
+      max: 2.5Gi
     #
     # redpanda:
       # This optional redpanda section allows specifying the memory size for both the Redpanda
@@ -249,7 +249,7 @@ post_upgrade_job: {}
 
 statefulset:
   # Number of Redpanda brokers (recommend setting this to the number of nodes in the cluster)
-  replicas: 2
+  replicas: 4
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel

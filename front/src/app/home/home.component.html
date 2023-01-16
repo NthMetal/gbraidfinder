@@ -366,9 +366,14 @@
         <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
             Clicking a raid will {{ settingsService.settings.copyOnly ? 'copy the battle key' : 'go to the summon
             select'}}
+
             {{ settingsService.settings.copyOnly && settingsService.settings.openInTab ? 'and then open GBF' : '' }}
             {{ !settingsService.settings.copyOnly ? settingsService.settings.openInTab ? 'in a new tab' : 'in an
             existing tab' : '' }}
+            <div class="d-flex align-items-center" style="color: rgb(209, 71, 36)" *ngIf="!settingsService.settings.copyOnly">
+                <mat-icon class="mr-2" matTooltip="Going directly to the summon select skips checking pending raids. Make sure you don't have more than 5 pending raids (1 when guildwars/unite&fight is active)">info</mat-icon>
+                Make sure you check your pending battles!
+            </div>
         </div>
 
         <!-- Removing Raids -->
