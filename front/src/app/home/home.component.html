@@ -120,7 +120,8 @@
 </div>
 
 <ng-template #raidCard let-raid>
-    <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }" (click)="selectRaid(raid)">
+    <mat-card class="mt-2 py-1 raid-card" [ngClass]="{'raid-card-selected': raid.selected }" (click)="selectRaid(raid)"
+        *ngIf="settingsService.settings.showOnlyUpdates ? !!raid.update : true">
         <!-- { 
           "twitterUser": { 
             "name": "FREQ",
@@ -364,12 +365,10 @@
             </div>
         </mat-card>
         <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
-            Clicking a raid will {{ settingsService.settings.copyOnly ? 'copy the battle key' : 'go to the summon
-            select'}}
+            Clicking a raid will {{ settingsService.settings.copyOnly ? 'copy the battle key' : 'go to the summonselect'}}
 
             {{ settingsService.settings.copyOnly && settingsService.settings.openInTab ? 'and then open GBF' : '' }}
-            {{ !settingsService.settings.copyOnly ? settingsService.settings.openInTab ? 'in a new tab' : 'in an
-            existing tab' : '' }}
+            {{ !settingsService.settings.copyOnly ? settingsService.settings.openInTab ? 'in a new tab' : 'in an existing tab' : '' }}
             <div class="d-flex align-items-center" style="color: rgb(209, 71, 36)" *ngIf="!settingsService.settings.copyOnly">
                 <mat-icon class="mr-2" matTooltip="Going directly to the summon select skips checking pending raids. Make sure you don't have more than 5 pending raids (1 when guildwars/unite&fight is active)">info</mat-icon>
                 Make sure you check your pending battles!
@@ -399,6 +398,22 @@
         <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
             Raids will be removed after {{settingsService.settings.removeRaidsAfterSeconds}} seconds or if there are
             {{settingsService.settings.removeRaidsAfterLimit}} raids on the list.
+        </div>
+        <mat-card class="mt-1 bg-2">
+            <div class="row align-items-center">
+                <div class="col">
+                    Show only raids with updates
+                </div>
+                <div class="col-auto">
+                    <mat-slide-toggle color="primary" [(ngModel)]="settingsService.settings.showOnlyUpdates" name="showOnlyUpdates">
+                    </mat-slide-toggle>
+                </div>
+            </div>
+        </mat-card>
+        <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">
+            {{settingsService.settings.showOnlyUpdates ? 
+                'Raids will only be shown when additional info is retrieved (hp, players, time left)' :
+                'All raids will be shown'}}
         </div>
 
         <!-- Desktop Notifications -->

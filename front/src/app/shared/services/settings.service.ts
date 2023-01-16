@@ -17,6 +17,7 @@ export class SettingsService {
     // language: 'EN',
     removeRaidsAfterSeconds: 5400, // 1 hour 30 mins (time limit for most raids)
     removeRaidsAfterLimit: 20,
+    showOnlyUpdates: false,
 
     copyOnly: true,
     openInTab: false,
