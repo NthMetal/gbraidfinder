@@ -174,39 +174,6 @@
     </mat-card>
 </ng-template>
 
-<ng-template #statusDebugDialog>
-    <mat-dialog>
-        <div title>Status Debug</div>
-        <mat-divider class="my-3"></mat-divider>
-        <div class="row">
-            <div class="col">
-                Last Status Recieved: {{ lastStatusRecievedAt | timeago }}
-            </div>
-        </div>
-        <mat-divider class="my-3"></mat-divider>
-        <div class="row flex-column">
-            <div class="col">
-                Users Connected: {{ status.socketStatus.usersConnected }}
-            </div>
-            <div class="col">
-                Last Tweet Recieved: {{ status.raidStatus.tweetStatus.lastTweetRecievedAt ?
-                (status.raidStatus.tweetStatus.lastTweetRecievedAt | timeago) : 'None' }}
-            </div>
-            <div class="col">
-                Last Tweet Source Recieved: {{ status.raidStatus.tweetStatus.lastTweetSourceRecievedAt ?
-                (status.raidStatus.tweetStatus.lastTweetSourceRecievedAt | timeago) : 'None' }}
-            </div>
-        </div>
-        <mat-divider class="my-3"></mat-divider>
-        <div class="row flex-column">
-            <div class="col" *ngFor="let gbrStatus of status.raidStatus.gbrStatus; let i=index">
-                GBR {{i}}: {{ gbrStatus ? (gbrStatus | timeago) : 'None' }}
-            </div>
-        </div>
-        <mat-divider class="my-3"></mat-divider>
-    </mat-dialog>
-</ng-template>
-
 <ng-template #infoDialog>
     <mat-dialog height="large">
         <div title>Info</div>
