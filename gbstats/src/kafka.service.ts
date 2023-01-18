@@ -31,8 +31,8 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   async onModuleInit() {
     await this.consumer.connect();
 
-    await this.consumer.subscribe({ fromBeginning: true, topic: /l.*/ });
-    await this.consumer.subscribe({ fromBeginning: true, topic: 'update' });
+    await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
+    await this.consumer.subscribe({ fromBeginning: false, topic: 'update' });
     this.consumer.run({
       autoCommit: true,
       eachMessage: async (payload) => {
