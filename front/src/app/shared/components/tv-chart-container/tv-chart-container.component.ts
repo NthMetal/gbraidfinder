@@ -141,7 +141,7 @@ export class TvChartContainerComponent implements OnInit, OnDestroy {
                         this.router.navigate(['/home']);
                     });
                 });
-                button.innerHTML = '<div id="header-toolbar-properties" data-role="button" class="iconButton-pzOKvpP8 button-2YcRd2gv button-2Vpz_LXc apply-common-tooltip isInteractive-2Vpz_LXc"><span class="icon-2Vpz_LXc"><img src="../../../icons/favicon-32x32.png"></img></span></div>';
+                button.innerHTML = '<div id="header-toolbar-properties" data-role="button" class="iconButton-pzOKvpP8 button-2YcRd2gv button-2Vpz_LXc apply-common-tooltip isInteractive-2Vpz_LXc"><span class="icon-2Vpz_LXc"><img alt="gbraidfinder logo" src="../../../icons/favicon-32x32.png"></img></span></div>';
             });
         });
     }

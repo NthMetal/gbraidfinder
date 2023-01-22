@@ -3,7 +3,7 @@
     <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
         <div class="row">
             <div class="col-auto">
-                <button mat-mini-fab color="primary" (click)="openDialog(raidDialog)">
+                <button aria-label="Add Raid" mat-mini-fab color="primary" (click)="openDialog(raidDialog)">
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
@@ -26,26 +26,26 @@
         </div> -->
             <div class="col"></div>
             <div class="col-auto">
-                <a href="https://github.com/NthMetal/gbraidfinder/issues" target="_blank">
-                    <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
-                        <img src="assets/icons/github-logo.svg" />
+                <a aria-label="Link to Github Issues Page" href="https://github.com/NthMetal/gbraidfinder/issues" target="_blank">
+                    <button aria-label="Report Bugs in Github Button" style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
+                        <img alt="github logo" src="assets/icons/github-logo.svg" />
                     </button>
                 </a>
             </div>
             <div class="col-auto">
-                <button mat-icon-button (click)="openDialog(infoDialog, true)">
+                <button aria-label="Open Info Dialog" mat-icon-button (click)="openDialog(infoDialog, true)">
                     <mat-icon class="material-icons-outlined"
                         [matBadge]="!settingsService.maintinance.notify ? '' : settingsService.maintinance.notify"
                         matBadgeSize="small" matBadgeColor="warn">info</mat-icon>
                 </button>
             </div>
             <div class="col-auto">
-                <button mat-mini-fab color="primary" (click)="gotoStats()">
+                <button aria-label="Go to stats Page" mat-mini-fab color="primary" (click)="gotoStats()">
                     <mat-icon>insights</mat-icon>
                 </button>
             </div>
             <div class="col-auto">
-                <button mat-mini-fab color="primary" (click)="openBottomSheet(settingsBottomSheet)">
+                <button aria-label="Open Settings Bottom Sheet" mat-mini-fab color="primary" (click)="openBottomSheet(settingsBottomSheet)">
                     <mat-icon>settings</mat-icon>
                 </button>
             </div>
@@ -62,26 +62,26 @@
                 matBadgeColor="primary">
                 <div class="p-2 row align-items-center dragula-handle" handle>
                     <div class="col-auto dragula-handle" handle>
-                        <button mat-icon-button color="primary" (click)="unsubscribeRaid(raid_data.quest_id)">
+                        <button aria-label="Unsubscribe from Raid" mat-icon-button color="primary" (click)="unsubscribeRaid(raid_data.quest_id)">
                             <mat-icon>close</mat-icon>
                         </button>
                     </div>
                     <div class="col dragula-handle" handle>{{raid_data.quest_name_en}}</div>
                     <div class="col-auto dragula-handle" handle>
-                        <button mat-icon-button color="primary" [matMenuTriggerFor]="columnMenu">
+                        <button aria-label="Open Column Menu" mat-icon-button color="primary" [matMenuTriggerFor]="columnMenu">
                             <mat-icon>more_vert</mat-icon>
                         </button>
                         <mat-menu #columnMenu="matMenu">
-                            <button mat-menu-item (click)="moveQuestLeft(raid_data)">
+                            <button aria-label="Move Column Left" mat-menu-item (click)="moveQuestLeft(raid_data)">
                                 <mat-icon>keyboard_arrow_left</mat-icon>Move Left
                             </button>
-                            <button mat-menu-item (click)="moveQuestRight(raid_data)">
+                            <button aria-label="Move Column Right" mat-menu-item (click)="moveQuestRight(raid_data)">
                                 <mat-icon>keyboard_arrow_right</mat-icon>Move Right
                             </button>
-                            <button mat-menu-item (click)="clearAllRaidsInQuest(raid_data)">
+                            <button aria-label="Clear All Raids In Column" mat-menu-item (click)="clearAllRaidsInQuest(raid_data)">
                                 <mat-icon>clear_all</mat-icon>Clear
                             </button>
-                            <button mat-menu-item (click)="toggleQuestNotifications(raid_data)">
+                            <button aria-label="Toggle Quest Notifications" mat-menu-item (click)="toggleQuestNotifications(raid_data)">
                                 <mat-icon
                                     *ngIf="settingsService.settings.questNotificationSettings[raid_data.quest_id] && settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
                                     notifications_active</mat-icon>
@@ -91,7 +91,7 @@
                                 <!-- {{raid_data.notifications ? 'Disable' : 'Enable'}} -->
                                 Notifications
                             </button>
-                            <button mat-menu-item (click)="toggleQuestSound(raid_data)">
+                            <button aria-label="Toggle Quest Sound" mat-menu-item (click)="toggleQuestSound(raid_data)">
                                 <mat-icon
                                     *ngIf="settingsService.settings.questSoundSettings[raid_data.quest_id] && settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
                                     music_note</mat-icon>
@@ -168,7 +168,7 @@
             <div class="col d-flex align-items-center">{{raid.update?.players}} </div>
             <div class="col d-flex align-items-center">{{raid.update?.timeLeft}} </div>
             <div class="col-auto d-flex align-items-center">
-                <img height="20px" [src]="'assets/icons/' + (raid.update.questHostClass || 'noclass') + '.png'" />
+                <img height="20px" [alt]="raid.update.questHostClass" [src]="'assets/icons/' + (raid.update.questHostClass || 'noclass') + '.png'" />
             </div>
         </div>
     </mat-card>
@@ -184,9 +184,9 @@
             {{ settingsService.maintinance.message }}
         </mat-card>
         <mat-card class="bg-2 my-3 d-flex align-items-center">
-            <a href="https://github.com/NthMetal/gbraidfinder" target="_blank">
-                <button style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
-                    <img src="assets/icons/github-logo.svg" />
+            <a aria-label="Link to Github Issues Page" href="https://github.com/NthMetal/gbraidfinder" target="_blank">
+                <button aria-label="Report Bugs Button" style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
+                    <img alt="github logo info" src="assets/icons/github-logo.svg" />
                 </button>
             </a>
             If you're interested in contributing or reporting bugs, visit the github!
