@@ -28,7 +28,10 @@
             "inlineStyleLanguage": "less",
             "assets": [
               "src/icons",
-              "src/assets"
+              "src/assets",
+              "src/robots.txt",
+              "src/sitemap.xml",
+              "src/ads.txt"
             ],
             "styles": [
               "src/bootstrap-grid.min.css",
@@ -97,7 +100,10 @@
             "inlineStyleLanguage": "less",
             "assets": [
               "src/icons",
-              "src/assets"
+              "src/assets",
+              "src/robots.txt",
+              "src/sitemap.xml",
+              "src/ads.txt"
             ],
             "styles": [
               "src/bootstrap-grid.min.css",
