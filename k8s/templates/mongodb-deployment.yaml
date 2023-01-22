@@ -16,7 +16,7 @@ spec:
         app: mongodb
     spec:
       affinity:
-        podAffinity:
+        podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -25,7 +25,9 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - gbdist
+                    - gbdist
+                    - gbstats
+                    - gbsource
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: mongodb

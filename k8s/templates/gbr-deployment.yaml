@@ -26,7 +26,11 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - gbdist
+                  {{- range $j, $s := ($.Values.gbrInstances) }}
+                  {{- if ne $i $j}}
+                    - gbr-{{$j}} 
+                  {{- end }}
+                  {{- end }}
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: gbr-{{ $i }}

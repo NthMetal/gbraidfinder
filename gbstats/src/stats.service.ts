@@ -1,11 +1,12 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Collection, MongoClient, ObjectId } from 'mongodb';
+// import { Collection, MongoClient, ObjectId } from 'mongodb';
 import { ConfigService } from './config.service';
 import { KafkaService } from './kafka.service';
 import { v4 as uuidv4 } from 'uuid';
 
-import * as fs from 'fs';
-import e from 'express';
+import * as dynamo from 'dynamodb';
+import * as AWS from 'aws-sdk';
+import * as Joi from 'joi';
 
 @Injectable()
 export class StatsService implements OnModuleInit {
@@ -17,18 +18,6 @@ export class StatsService implements OnModuleInit {
 
     currentSegmentStats: {
         [questId: string]: {
-            [timestamp: number]: {
-                add_count: number,
-                add_updateCount: number,
-                add_hpSum: number,
-                add_playerSum: number,
-                add_timeLeftSum: number,
-                // add_class: { [add_classId: string]: number }
-            }
-        }
-    } = {}
-    allSegmentStats: {
-        [timestamp: number]: {
             add_count: number,
             add_updateCount: number,
             add_hpSum: number,
@@ -37,7 +26,22 @@ export class StatsService implements OnModuleInit {
             // add_class: { [add_classId: string]: number }
         }
     } = {}
-    collections: { [questId: string]: Collection<any> } = {}
+    allSegmentStats: {
+        add_count: number,
+        add_updateCount: number,
+        add_hpSum: number,
+        add_playerSum: number,
+        add_timeLeftSum: number,
+        // add_class: { [add_classId: string]: number }
+    } = {
+        add_count: 0,
+        add_updateCount: 0,
+        add_hpSum: 0,
+        add_playerSum: 0,
+        add_timeLeftSum: 0
+    }
+    // collections: { [questId: string]: dynamo.Model<any> } = {}
+    Stats: dynamo.Model<any>;
 
     constructor(
         private readonly kafkaService: KafkaService,
@@ -45,37 +49,58 @@ export class StatsService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
+        AWS.config.update({ region: 'us-east-2' });
+
         const url = this.configService.config.dburl;
         console.log('connecting to: ', url);
-        const client = new MongoClient(url);
-        await client.connect();
         console.log('Connected successfully to server');
-        const db = client.db('gbstats');
-        this.collections = this.configService.config.raidmetadata.reduce((acc, raid) => {
-            acc[raid.quest_id] = db.collection(raid.quest_id);
-            return acc;
-        }, {});
-        this.collections.all = db.collection('all');
+        this.Stats = dynamo.define('stats', {
+            hashKey: 'pkId',
+            // add the timestamp attributes (updatedAt, createdAt)
+            timestamps: false,
+            schema: {
+                pkId: Joi.string(),
+                timestamp: Joi.number(),
+                questId: Joi.string(),
+                count: Joi.number(),
+                hpSum: Joi.number(),
+                playerSum: Joi.number(),
+                timeLeftSum: Joi.number(),
+                updateCount: Joi.number()
+            },
+            indexes: [
+                { hashKey: 'questId', rangeKey: 'timestamp', name: 'questId-index', type: 'global' },
+            ]
+        });
+
+        console.log('Creating Table...');
+        const createResult = await new Promise<any>(resolve => {
+            // ddb.createTable(params, function(err, data) {
+            dynamo.createTables(function(err) {
+                if (err) {
+                    resolve({
+                        success: false,
+                        message: 'Error creating table: ',
+                        error: err
+                    });
+                } else {
+                    resolve({
+                        success: true,
+                        message: 'Table has been created',
+                        error: null
+                    });
+                }
+            });
+        });
+        console.log(createResult);
+
         // this.db.raidfrequencytime = new Datastore({ filename: 'db/raidfrequencytime.db', autoload: true });
 
         this.kafkaService.raids.subscribe(({ timestamp, raid }) => {
-            const timeId = this.roundToNearest(timestamp);
             // console.log(timestamp, new Date(+timestamp), )
 
             if (!this.currentSegmentStats[raid.quest_id]) {
                 this.currentSegmentStats[raid.quest_id] = {
-                    [timeId.getTime()]: {
-                        add_count: 0,
-                        add_updateCount: 0,
-                        add_hpSum: 0,
-                        add_playerSum: 0,
-                        add_timeLeftSum: 0,
-                        // add_class: {}
-                    }
-                }
-            }
-            if (!this.currentSegmentStats[raid.quest_id][timeId.getTime()]) {
-                this.currentSegmentStats[raid.quest_id][timeId.getTime()] = {
                     add_count: 0,
                     add_updateCount: 0,
                     add_hpSum: 0,
@@ -85,19 +110,8 @@ export class StatsService implements OnModuleInit {
                 }
             }
 
-            this.currentSegmentStats[raid.quest_id][timeId.getTime()].add_count++;
-
-            if (!this.allSegmentStats[timeId.getTime()]) {
-                this.allSegmentStats[timeId.getTime()] = {
-                    add_count: 0,
-                    add_updateCount: 0,
-                    add_hpSum: 0,
-                    add_playerSum: 0,
-                    add_timeLeftSum: 0,
-                    // add_class: {}
-                }
-            }
-            this.allSegmentStats[timeId.getTime()].add_count++;
+            this.currentSegmentStats[raid.quest_id].add_count++;
+            this.allSegmentStats.add_count++;
             // this.collections[raid.quest_id]
             // {
             //     twitterUser: {
@@ -114,22 +128,9 @@ export class StatsService implements OnModuleInit {
         });
 
         this.kafkaService.updates.subscribe(({ timestamp, update }) => {
-            const timeId = this.roundToNearest(timestamp);
 
             if (!this.currentSegmentStats[update.questID]) {
                 this.currentSegmentStats[update.questID] = {
-                    [timeId.getTime()]: {
-                        add_count: 0,
-                        add_updateCount: 0,
-                        add_hpSum: 0,
-                        add_playerSum: 0,
-                        add_timeLeftSum: 0,
-                        // add_class: {}
-                    }
-                }
-            }
-            if (!this.currentSegmentStats[update.questID][timeId.getTime()]) {
-                this.currentSegmentStats[update.questID][timeId.getTime()] = {
                     add_count: 0,
                     add_updateCount: 0,
                     add_hpSum: 0,
@@ -139,39 +140,27 @@ export class StatsService implements OnModuleInit {
                 }
             }
 
-            this.currentSegmentStats[update.questID][timeId.getTime()].add_updateCount++
+            this.currentSegmentStats[update.questID].add_updateCount++
 
-            this.currentSegmentStats[update.questID][timeId.getTime()].add_hpSum += +update.hp;
+            this.currentSegmentStats[update.questID].add_hpSum += +update.hp;
 
             const players = +update.players.split('%2F')[0]
-            this.currentSegmentStats[update.questID][timeId.getTime()].add_playerSum += players;
+            this.currentSegmentStats[update.questID].add_playerSum += players;
 
             const timeLeftSegments = update.timeLeft.split('%3A');
             const timeLeft = +timeLeftSegments[0] * 60 * 60 +
                 +timeLeftSegments[1] * 60 +
                 +timeLeftSegments[2]
-            this.currentSegmentStats[update.questID][timeId.getTime()].add_timeLeftSum += timeLeft;
+            this.currentSegmentStats[update.questID].add_timeLeftSum += timeLeft;
 
             // if (!this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]) {
             //     this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass] = 0
             // }
             // this.currentSegmentStats[update.questID][timeId.getTime()].add_class[update.questHostClass]++;
-
-
-            if (!this.allSegmentStats[timeId.getTime()]) {
-                this.allSegmentStats[timeId.getTime()] = {
-                    add_count: 0,
-                    add_updateCount: 0,
-                    add_hpSum: 0,
-                    add_playerSum: 0,
-                    add_timeLeftSum: 0,
-                    // add_class: {}
-                }
-            }
-            this.allSegmentStats[timeId.getTime()].add_updateCount++;
-            this.allSegmentStats[timeId.getTime()].add_hpSum += +update.hp;
-            this.allSegmentStats[timeId.getTime()].add_playerSum += players;
-            this.allSegmentStats[timeId.getTime()].add_timeLeftSum += timeLeft;
+            this.allSegmentStats.add_updateCount++;
+            this.allSegmentStats.add_hpSum += +update.hp;
+            this.allSegmentStats.add_playerSum += players;
+            this.allSegmentStats.add_timeLeftSum += timeLeft;
             // if (!this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass]) {
             //     this.allSegmentStats[timeId.getTime()].add_class[update.questHostClass] = 0
             // }
@@ -191,41 +180,40 @@ export class StatsService implements OnModuleInit {
         });
 
         setInterval(() => {
-            console.log('logging....', this.configService.config.raidmetadata.length);
-
+            console.log('logging....', this.allSegmentStats);
+            
+            const intervalTime = this.roundToNearest(new Date());
             const raidQuestIdsAndAll = [...this.configService.config.raidmetadata, { quest_id: 'all' }]
-            raidQuestIdsAndAll.forEach(raid => {
-                const statsAccessor = raid.quest_id === 'all' ? this.allSegmentStats : this.currentSegmentStats[raid.quest_id];
-                if (!statsAccessor) return;
-
-                const bulkWriteOperation = Object.entries(statsAccessor).map(([time, additions]) => {
-                    // const classUpdate = Object.entries(additions.add_class).reduce((acc, [classId, add_classCount]) => {
-                    //     acc['class.' + (classId || 0)] = add_classCount || 0
-                    //     return acc;
-                    // }, {});
-                    return {
-                        updateOne: {
-                            filter: { timestamp: new Date(+time) },
-                            update: {
-                                $inc: {
-                                    count: additions.add_count,
-                                    updateCount: additions.add_updateCount,
-                                    hpSum: additions.add_hpSum,
-                                    playerSum: additions.add_playerSum,
-                                    timeLeftSum: additions.add_timeLeftSum,
-                                    // ...classUpdate
-                                }
-                            },
-                            upsert: true
-                        }
-                    }
+            const records = raidQuestIdsAndAll.reduce((acc, raid) => {
+                let statsAccessor = raid.quest_id === 'all' ? this.allSegmentStats : this.currentSegmentStats[raid.quest_id];
+                if (!statsAccessor) return acc;
+                const statsZeroSum = statsAccessor.add_count + statsAccessor.add_hpSum + statsAccessor.add_playerSum + statsAccessor.add_timeLeftSum + statsAccessor.add_updateCount;
+                if (statsZeroSum === 0) return acc;
+                acc.push({
+                    pkId: uuidv4(),
+                    timestamp: intervalTime.getTime(),
+                    questId: raid.quest_id,
+                    count: statsAccessor.add_count,
+                    hpSum: statsAccessor.add_hpSum,
+                    playerSum: statsAccessor.add_playerSum,
+                    timeLeftSum: statsAccessor.add_timeLeftSum,
+                    updateCount: statsAccessor.add_updateCount
                 });
-                if (bulkWriteOperation.length) this.collections[raid.quest_id].bulkWrite(bulkWriteOperation).then(result => { });
-            });
+                return acc;
+            }, []);
 
+            console.log(records.length);
+            if (records.length) this.Stats.create(records);
+            
             // reset stats
             this.currentSegmentStats = {};
-            this.allSegmentStats = {};
+            this.allSegmentStats = {
+                add_count: 0,
+                add_updateCount: 0,
+                add_hpSum: 0,
+                add_playerSum: 0,
+                add_timeLeftSum: 0
+            };
         }, 1000 * 60);
 
     }
@@ -234,8 +222,7 @@ export class StatsService implements OnModuleInit {
         return array && array.length ? array.reduce((a, b) => a + b) / array.length : 0;
     }
 
-    private roundToNearest(dateish: Date): Date {
-        const date = new Date(+dateish);
+    private roundToNearest(date: Date): Date {
         const ms = 1000 * 60 * 1;
         return new Date(Math.floor(date.getTime() / ms) * ms);
     }
@@ -248,22 +235,31 @@ export class StatsService implements OnModuleInit {
      * @param interval time interval between each data point in minutes (lowest possible is 1 minute)
      */
     public async queryInterval(questId: string, start: Date, end: Date, interval: number, count: number) {
-        const collection = this.collections[questId];
-        const query = await collection.find({
-            timestamp: {
-                $gte: start,
-                $lt: end
-            }
-        }).toArray();
+        console.log('getting items', questId, start, end, interval, count);
+        // .where('timestamp').between(start.getTime(), end.getTime())
+        const query = await new Promise<dynamo.Model<any>[]>(resolve => {
+            this.Stats.query(questId).usingIndex('questId-index').where('timestamp').between(start.getTime(), end.getTime()).loadAll().exec(function (err, data) {
+                if(err) resolve([]);
+                else resolve(data.Items);
+            });
+        });
+        console.log(query.length);
+        // const collection = this.collections[questId];
+        // const query = await collection.find({
+        //     timestamp: {
+        //         $gte: start,
+        //         $lt: end
+        //     }
+        // }).toArray();
         const diff = end.getTime() - start.getTime(); // amount of milliseconds
         const timeBetween = Math.floor(diff / count); // time between each interval
-        console.log(timeBetween)
-        
+        // console.log(timeBetween)
+
         const reduced = [];
 
-        for (let i=0; i<count; i++) {
+        for (let i = 0; i < count; i++) {
             const currentStart = new Date(start.getTime() + (i * timeBetween));
-            const currentEnd   = new Date(start.getTime() + ((i + 1) * timeBetween));
+            const currentEnd = new Date(start.getTime() + ((i + 1) * timeBetween));
             const current = {
                 timestamp: currentStart,
                 timestampEnd: currentEnd,
@@ -278,14 +274,14 @@ export class StatsService implements OnModuleInit {
         }
 
         for (let record of query) {
-            const recordTimestamp = new Date(record.timestamp).getTime();
+            const recordTimestamp = new Date(record.attrs.timestamp).getTime();
             const matchingIndex = Math.floor((recordTimestamp - start.getTime()) / timeBetween);
             const current = reduced[matchingIndex];
-            current.count += record.count;
-            current.hpSum += record.hpSum;
-            current.playerSum += record.playerSum;
-            current.timeLeftSum += record.timeLeftSum;
-            current.updateCount += record.updateCount;
+            current.count += record.attrs.count;
+            current.hpSum += record.attrs.hpSum;
+            current.playerSum += record.attrs.playerSum;
+            current.timeLeftSum += record.attrs.timeLeftSum;
+            current.updateCount += record.attrs.updateCount;
         }
 
         return reduced;

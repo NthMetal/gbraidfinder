@@ -14,8 +14,10 @@ spec:
       labels:
         app: gbstats
     spec:
+      # https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html 
+      serviceAccountName: gbr-service-account
       affinity:
-        podAffinity:
+        podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -24,7 +26,9 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - gbdist
+                    - gbdist
+                    - mongodb
+                    - gbsource
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: gbstats

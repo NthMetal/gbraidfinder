@@ -15,7 +15,7 @@ spec:
         app: gbsource
     spec:
       affinity:
-        podAffinity:
+        podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -25,6 +25,8 @@ spec:
                   operator: In
                   values:
                   - gbdist
+                  - mongodb
+                  - gbstats
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: gbsource
