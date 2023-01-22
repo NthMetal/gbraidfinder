@@ -159,7 +159,7 @@
         </div>
         <div class="row mt-2 align-items-end" *ngIf="raid.update">
             <div class="col">
-                <mat-progress-bar mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
+                <mat-progress-bar aria-progressbar-name="Raid Hp Progress Bar" mode="determinate" color="warn" [value]="raid.update.hp"></mat-progress-bar>
             </div>
         </div>
         <!-- <div class="col-auto" style="line-height: 0.1rem;"> {{raid.update?.hp}}% </div> -->
