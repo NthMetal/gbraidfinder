@@ -51,6 +51,7 @@ export class HomeComponent implements OnInit {
   impossibleDifficulties: string[] = [];
 
   tabActive = true;
+  tabFocused = true;
 
   public readonly bitcoinAddressToDisplay = 'bc1qcrpyd6z5q7z3735y26psl2auc6jr97kjnurxsg';
 
@@ -84,6 +85,18 @@ export class HomeComponent implements OnInit {
         console.log('tab not active');
       }
     });
+
+    /**
+     * Updates window focus and blur events to detect when the window is focused
+     * Window can be unfocused while the tab is active
+     * Used for limiting auto copy to only when window is focused.
+     */
+    window.onfocus = () => {
+      this.tabFocused = true;
+    }
+    window.onblur = () => {
+      this.tabFocused = false;
+    }
     
     /**
      * Subscribes to raid search subject
@@ -194,9 +207,16 @@ export class HomeComponent implements OnInit {
       }
       else this.raids[raid.quest_id] = [raid];
 
-      const found = this.raid_metadata.find(meta => meta.quest_id === raid.quest_id);
+
+
       if (!settings.questSoundSettings[raid.quest_id]?.soundOnUpdate) this.notificationService.playSound(raid);
-      if (!settings.questNotificationSettings[raid.quest_id]?.notificationOnUpdate) this.notificationService.scheduleNotification(raid, found.quest_name_en);
+      if (!settings.questNotificationSettings[raid.quest_id]?.notificationOnUpdate) {
+        const found = this.raid_metadata.find(meta => meta.quest_id === raid.quest_id);
+        this.notificationService.scheduleNotification(raid, found.quest_name_en);
+      }
+      if (settings.questAutoCopySettings[raid.quest_id]?.enabled && this.tabActive && this.tabFocused) {
+        this.selectRaid(raid);
+      }
       
       /**
        * Remove the last raid on the list if the tab is inactive and there are
@@ -415,9 +435,47 @@ export class HomeComponent implements OnInit {
   public toggleQuestSound(raid: any) {
     const settings = this.settingsService.settings;
     settings.questSoundSettings[raid.quest_id] ?
-    settings.questSoundSettings[raid.quest_id].enabled = !settings.questSoundSettings[raid.quest_id].enabled :
-    settings.questSoundSettings[raid.quest_id] = { enabled: true, soundOnUpdate: false, sound: '' }
+      settings.questSoundSettings[raid.quest_id].enabled = !settings.questSoundSettings[raid.quest_id].enabled :
+      settings.questSoundSettings[raid.quest_id] = { enabled: true, soundOnUpdate: false, sound: '' }
     this.settingsService.updateSettings();
+  }
+
+  /**
+   * toggles extended menu for the specific quest
+   * @param raid quest id of the raid
+   */
+  public toggleQuestExtendedMenu(raid: any) {
+    const settings = this.settingsService.settings;
+    settings.questExtendedMenu[raid.quest_id] ?
+      settings.questExtendedMenu[raid.quest_id].visible = !settings.questExtendedMenu[raid.quest_id].visible :
+      settings.questExtendedMenu[raid.quest_id] = { visible: true }
+    this.settingsService.updateSettings();
+  }
+
+  /**
+   * toggles auto copy settings for the specific quest
+   * @param raid quest id of the raid
+   */
+  public toggleQuestAutoCopy(raid: any) {
+    const settings = this.settingsService.settings;
+    settings.questAutoCopySettings[raid.quest_id] ?
+      settings.questAutoCopySettings[raid.quest_id].enabled = !settings.questAutoCopySettings[raid.quest_id].enabled :
+      settings.questAutoCopySettings[raid.quest_id] = { enabled: true }
+    this.settingsService.updateSettings();
+  }
+
+  /**
+   * Copies the latest raid that appeared in the column.
+   * @param raid quest id of the raid
+   */
+  public copyLatestRaid(raid: any) {
+    if (this.raids[raid.quest_id] && this.raids[raid.quest_id].length) {
+      const found = this.settingsService.settings.copyOnly ? 
+        this.raids[raid.quest_id].find(item => !item.selected) :
+        this.raids[raid.quest_id].find(item => !item.selected && item.update);
+
+      this.selectRaid(found);
+    }
   }
 
   /**

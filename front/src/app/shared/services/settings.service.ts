@@ -39,7 +39,10 @@ export class SettingsService {
     silentNotifications: true,
     requireInteraction: false,
     notificationsEnabled: true,
-    questNotificationSettings: {} as { [key: string]: { enabled: boolean, notificationOnUpdate: boolean}}
+    questNotificationSettings: {} as { [key: string]: { enabled: boolean, notificationOnUpdate: boolean }},
+    
+    questExtendedMenu: {} as { [key: string]: { visible: boolean }},
+    questAutoCopySettings: {} as { [key: string]: { enabled: boolean }},
   }
 
   public readonly maintinance = {

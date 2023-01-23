@@ -122,6 +122,11 @@ export class NotificationService {
    * @returns true if successful false otherwise
    */
   public copyTextToClipboard(input: any) {
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(input);
+      return true;
+    }
+
     const element = document.createElement('textarea');
     const previouslyFocusedElement: any = document.activeElement;
 

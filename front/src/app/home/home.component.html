@@ -68,50 +68,76 @@
                     </div>
                     <div class="col dragula-handle" handle>{{raid_data.quest_name_en}}</div>
                     <div class="col-auto dragula-handle" handle>
-                        <button aria-label="Open Column Menu" mat-icon-button color="primary" [matMenuTriggerFor]="columnMenu">
-                            <mat-icon>more_vert</mat-icon>
+                        <button aria-label="Toggle Column Menu" mat-icon-button color="primary" (click)="toggleQuestExtendedMenu(raid_data)">
+                            <mat-icon *ngIf="settingsService.settings.questExtendedMenu[raid_data.quest_id] && settingsService.settings.questExtendedMenu[raid_data.quest_id].visible">menu_open</mat-icon>
+                            <mat-icon *ngIf="!settingsService.settings.questExtendedMenu[raid_data.quest_id] || !settingsService.settings.questExtendedMenu[raid_data.quest_id].visible">menu</mat-icon>
                         </button>
-                        <mat-menu #columnMenu="matMenu">
-                            <button aria-label="Move Column Left" mat-menu-item (click)="moveQuestLeft(raid_data)">
-                                <mat-icon>keyboard_arrow_left</mat-icon>Move Left
-                            </button>
-                            <button aria-label="Move Column Right" mat-menu-item (click)="moveQuestRight(raid_data)">
-                                <mat-icon>keyboard_arrow_right</mat-icon>Move Right
-                            </button>
-                            <button aria-label="Clear All Raids In Column" mat-menu-item (click)="clearAllRaidsInQuest(raid_data)">
-                                <mat-icon>clear_all</mat-icon>Clear
-                            </button>
-                            <button aria-label="Toggle Quest Notifications" mat-menu-item (click)="toggleQuestNotifications(raid_data)">
-                                <mat-icon
-                                    *ngIf="settingsService.settings.questNotificationSettings[raid_data.quest_id] && settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
-                                    notifications_active</mat-icon>
-                                <mat-icon
-                                    *ngIf="!settingsService.settings.questNotificationSettings[raid_data.quest_id] || !settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
-                                    notifications_off</mat-icon>
-                                <!-- {{raid_data.notifications ? 'Disable' : 'Enable'}} -->
-                                Notifications
-                            </button>
-                            <button aria-label="Toggle Quest Sound" mat-menu-item (click)="toggleQuestSound(raid_data)">
-                                <mat-icon
-                                    *ngIf="settingsService.settings.questSoundSettings[raid_data.quest_id] && settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
-                                    music_note</mat-icon>
-                                <mat-icon
-                                    *ngIf="!settingsService.settings.questSoundSettings[raid_data.quest_id] || !settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
-                                    music_off</mat-icon>
-                                <!-- {{raid_data.sound ? 'Disable' : 'Enable'}} -->
-                                Sound
-                            </button>
-                        </mat-menu>
                     </div>
                 </div>
                 <mat-divider class="mb-1"></mat-divider>
-                <div class="px-2" style="overflow-y: scroll; height: calc(100% - 4.4rem);">
+                <div class="px-2" style="position: relative; overflow-y: scroll; height: calc(100% - 4.4rem);">
                     <!-- Each Raid Card was put in an ng template for a feature in the future -->
-                    <div style="height: calc(100% - 1rem);">
+                    <div style="height: calc(100% - 1rem); display: contents">
                         <ng-container *ngFor="let raid of raids[raid_data.quest_id]">
                             <ng-container *ngTemplateOutlet="raidCard; context: {$implicit: raid}"></ng-container>
                         </ng-container>
                     </div>
+                </div>
+                <div style="position: absolute; bottom: 0; width: 100%;" *ngIf="settingsService.settings.questExtendedMenu[raid_data.quest_id] && settingsService.settings.questExtendedMenu[raid_data.quest_id].visible">
+                    <mat-card class="bg-3 p-2">
+                        <button aria-label="Copy Latest Button" mat-stroked-button class="w-100 mb-2" (click)="copyLatestRaid(raid_data)">
+                            {{ settingsService.settings.copyOnly ? 'Copy Latest' : 'Go To Latest' }}
+                        </button>
+                        <div class="row g-3">
+                            <div class="col">
+                                <div class="row g-2">
+                                    <div class="col">
+                                    <button aria-label="Clear All Raids In Column" mat-stroked-button class="p-0 w-100 bottom-menu-buttons" (click)="clearAllRaidsInQuest(raid_data)" matTooltip="Clear Column">
+                                        <mat-icon>clear_all</mat-icon>
+                                    </button>
+                                    </div>
+                                    <div class="col">
+                                    <button aria-label="Toggle Quest Notifications" mat-stroked-button class="p-0 w-100 bottom-menu-buttons" (click)="toggleQuestNotifications(raid_data)" matTooltip="Desktop Notifications">
+                                        <mat-icon
+                                            *ngIf="settingsService.settings.questNotificationSettings[raid_data.quest_id] && settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
+                                            notifications_active</mat-icon>
+                                        <mat-icon
+                                            *ngIf="!settingsService.settings.questNotificationSettings[raid_data.quest_id] || !settingsService.settings.questNotificationSettings[raid_data.quest_id].enabled">
+                                            notifications_off</mat-icon>
+                                    </button>
+                                    </div>
+                                    <div class="col">
+                                        <button aria-label="Toggle Quest Sound" mat-stroked-button class="p-0 w-100 bottom-menu-buttons" (click)="toggleQuestSound(raid_data)" matTooltip="Sounds">
+                                            <mat-icon
+                                                *ngIf="settingsService.settings.questSoundSettings[raid_data.quest_id] && settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
+                                                music_note</mat-icon>
+                                            <mat-icon
+                                                *ngIf="!settingsService.settings.questSoundSettings[raid_data.quest_id] || !settingsService.settings.questSoundSettings[raid_data.quest_id].enabled">
+                                                music_off</mat-icon>
+                                        </button>
+                                    </div>
+                                    <div class="col">
+                                    <button aria-label="Toggle Quest Autocopy" mat-stroked-button class="p-0 w-100 bottom-menu-buttons" (click)="toggleQuestAutoCopy(raid_data)" matTooltip="Auto Copy">
+                                        <mat-icon
+                                            *ngIf="settingsService.settings.questAutoCopySettings[raid_data.quest_id] && settingsService.settings.questAutoCopySettings[raid_data.quest_id].enabled">
+                                            flight</mat-icon>
+                                        <mat-icon
+                                            *ngIf="!settingsService.settings.questAutoCopySettings[raid_data.quest_id] || !settingsService.settings.questAutoCopySettings[raid_data.quest_id].enabled">
+                                            airplanemode_inactive</mat-icon>
+                                    </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button aria-label="Move Column Left" mat-stroked-button class="p-0 bottom-menu--arrow-buttons" (click)="moveQuestLeft(raid_data)" matTooltip="Move Column Left">
+                                    <mat-icon>keyboard_arrow_left</mat-icon>
+                                </button>
+                                <button aria-label="Move Column Right" mat-stroked-button class="p-0 bottom-menu--arrow-buttons" (click)="moveQuestRight(raid_data)" matTooltip="Move Column Right">
+                                    <mat-icon>keyboard_arrow_right</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card>
                 </div>
             </div>
         </div>
