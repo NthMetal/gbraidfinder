@@ -1,2 +1,2 @@
-front/src/assets/tv linguist-detectable=false
-redpanda linguist-detectable=false
+front/src/assets/tv linguist-vendored
+redpanda linguist-vendored
