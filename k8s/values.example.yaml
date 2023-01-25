@@ -872,6 +872,18 @@ config:
       difficulty: '8'
       stage_id: '12081'
       thumbnail_image: high_diaspora_2
+    - quest_id: '305431'
+      level: '200'
+      element: dark
+      tweet_name_alt: []
+      tweet_name_en: Lvl 275 Agastia
+      tweet_name_jp: Lv275 アガスティア
+      quest_name_en: Agastia (Impossible)
+      quest_name_jp: アガスティアＨＬ
+      impossible: 2
+      difficulty: '8'
+      stage_id: '12081'
+      thumbnail_image: high_diaspora_2
     - quest_id: '305311'
       level: '200'
       element: normal
