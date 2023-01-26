@@ -179,6 +179,10 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     await this.checkPartitionsGetTopics();
 
     await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
+    
+    this.appService.updateSubject.subscribe(updateData => {
+      this.sendUpdate(updateData);
+    });
     return await this.consumer.run({
       autoCommit: true,
       eachMessage: async payload => {
@@ -188,7 +192,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           
           // console.log(payload.topic, payload.partition, this.appService.getAccount().rank, 'processing ', raid.battleKey);
           // {"locale":"JP","message":"","battleKey":"F35BF263","quest_id":"301061"}
-          const update = await this.appService.getRaidInfo(raid.battleKey);
+          // const update = await this.appService.getRaidInfo(raid.battleKey);
           // console.log(topic, partition, raid, update); // print the message
           // this.sendUpdate({
           //   resultStatus: 'success',
@@ -201,10 +205,11 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           //   questID: '305361',
           //   battleKey: '1A67620A'
           // });
-          if (update.status === 'success' && update.data && update.data.resultStatus === 'success') {
-            // console.log(JSON.stringify(update));
-            this.sendUpdate(update.data);
-          }
+          // if (update.status === 'success' && update.data && update.data.resultStatus === 'success') {
+          //   // console.log(JSON.stringify(update));
+          //   this.sendUpdate(update.data);
+          // }
+          this.appService.raidSubject.next(raid);
         }
       },
     });
