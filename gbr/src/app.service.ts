@@ -41,7 +41,7 @@ export class AppService {
   // });
     this.raidSubject.pipe(mergeMap(async raid => {
       return await this.getRaidInfo(raid.battleKey);
-    }, 10)).subscribe(update => {
+    }, 2)).subscribe(update => {
       if (update.status === 'success' && update.data && update.data.resultStatus === 'success') {
         this.updateSubject.next(update);
       }
