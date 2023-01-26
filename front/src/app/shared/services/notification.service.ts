@@ -84,13 +84,13 @@ export class NotificationService {
      * handles click event, opens raid in new tab or copies
      * depending on the settings
      */
-    notification.onclick = (e) => {
+    notification.onclick = async (e) => {
       raid.selected = true;
       if (raid.update && !this.settingsService.settings.copyOnly) {
         const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
         window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
       } else {
-        this.copyTextToClipboard(raid.battleKey);
+        await this.copyTextToClipboard(raid.battleKey);
         if (this.settingsService.settings.openInTab) {
           window.open(`https://game.granbluefantasy.jp/#quest/assist`, 'gbfTab');
         }
