@@ -121,9 +121,9 @@ export class NotificationService {
    * @param input text to be copied
    * @returns true if successful false otherwise
    */
-  public copyTextToClipboard(input: any) {
+  public async copyTextToClipboard(input: any): Promise<boolean> {
     if (navigator && navigator.clipboard) {
-      navigator.clipboard.writeText(input);
+      await navigator.clipboard.writeText(input);
       return true;
     }
 

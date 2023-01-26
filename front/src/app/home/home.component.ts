@@ -357,17 +357,20 @@ export class HomeComponent implements OnInit {
    * Either oopens up a window or copies battle key to clipboard depending on settings
    * @param raid 
    */
-  public selectRaid(raid: any) {
+  public async selectRaid(raid: any) {
     raid.selected = true;
     if (raid.update && !this.settingsService.settings.copyOnly) {
       const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
       window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
     } else {
-      const result = this.copyTextToClipboard(raid.battleKey);
-      result ? this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 }) : 
-      this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
-      if (this.settingsService.settings.openInTab) {
-        window.open(`https://game.granbluefantasy.jp/#quest/assist`, 'gbfTab');
+      const result = await this.copyTextToClipboard(raid.battleKey);
+      if (result) {
+        this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 });
+        if (this.settingsService.settings.openInTab) {
+          window.open(`https://game.granbluefantasy.jp/#quest/assist`, 'gbfTab');
+        }
+      } else {
+        this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
       }
       // navigator.clipboard.writeText(raid.battleKey).then(() => {
       //   this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 });
@@ -482,7 +485,7 @@ export class HomeComponent implements OnInit {
    * Copies text to clipboard
    * @param text text to copy to clipboard
    */
-  public copyTextToClipboard(text: string) {
+  public copyTextToClipboard(text: string): Promise<boolean> {
     return this.notificationService.copyTextToClipboard(text);
   }
 
