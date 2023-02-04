@@ -1,3 +1,4 @@
+<textarea #battleKeyInput class="clear-battlekey-input" type="text" value="" readonly></textarea>
 <div class="row flex-column flex-nowrap h-100">
     <!-- Top Navigation Header -->
     <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
@@ -85,7 +86,7 @@
                 </div>
                 <div style="position: absolute; bottom: 0; width: 100%;" *ngIf="settingsService.settings.questExtendedMenu[raid_data.quest_id] && settingsService.settings.questExtendedMenu[raid_data.quest_id].visible">
                     <mat-card class="bg-3 p-2">
-                        <button aria-label="Copy Latest Button" mat-stroked-button class="w-100 mb-2" (click)="copyLatestRaid(raid_data)">
+                        <button aria-label="Copy Latest Button" mat-stroked-button class="w-100 mb-2" (click)="copyLatestRaid(raid_data, raidCard)">
                             {{ settingsService.settings.copyOnly ? 'Copy Latest' : 'Go To Latest' }}
                         </button>
                         <div class="row g-3">
@@ -226,7 +227,7 @@
             </div>
             <div matRipple [matRippleCentered]="true" matRippleColor="#00000020"
                 class="align-items-center bg-1 mx-3 mt-3 p-3 row" style="cursor: pointer;"
-                (click)="copyTextToClipboard(bitcoinAddressToDisplay)">
+                (click)="copyTextToClipboard(bitcoinAddressToDisplay, battleKeyInput)">
                 <div class="col">
                     {{ bitcoinAddressToDisplay }}
                 </div>
@@ -293,12 +294,19 @@
                     <mat-button-toggle class="w-100" value="2">Impossible</mat-button-toggle>
                 </mat-button-toggle-group>
             </div>
+            <div class="col-auto">
+                <mat-button-toggle-group appearance="legacy" name="displaymode" #displayMode="matButtonToggleGroup" class="w-100" value="image" [(ngModel)]="settingsService.settings.questSelectorDisplayType" (ngModelChange)="updateSettings()">
+                    <mat-button-toggle class="w-100" value="image"><mat-icon>image</mat-icon></mat-button-toggle>
+                    <mat-button-toggle class="w-100" value="table"><mat-icon>view_list</mat-icon></mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
         </div>
         <!-- <div class="row my-2">
         <mat-card class="col-2 h-100" *ngFor="let raid of raid_metadata" [ngStyle]="{'background-image': 'url(/assets/thumb/' + raid.quest_id + '.png)', 'background-size': 'cover'}">
           {{raid.quest_name_en}}
         </mat-card>
       </div> -->
+      <ng-container *ngIf="displayMode.value === 'image'">
         <div class="row" style="height: calc(100vh - 20rem); overflow-y: auto;" *ngIf="typeGroup.value === '1'">
             <div class="col">
                 <div class="row my-3 w-100" *ngFor="let difficulty of standardDifficulties">
@@ -327,6 +335,57 @@
                 </div>
             </div>
         </div>
+      </ng-container>
+      <ng-container *ngIf="displayMode.value === 'table'">
+        <div style="height: calc(100vh - 20rem); overflow-y: auto;">
+          <table mat-table class="w-100" matSort [dataSource]="typeGroup.value === '1' ? standardRaids : impossibleRaids">
+    
+                <!-- { [ 'name', 'element', 'difficulty', 'level']
+                    "difficulty": "1", 
+                    "element": "wind", 
+                    "impossible": 2, 
+                    "level": "101", 
+                    "quest_id": "300441", 
+                    "quest_name_en": "Tiamat Omega (Impossible)", 
+                    "quest_name_jp": "ティアマト・マグナＨＬ", 
+                    "stage_id": "12011", 
+                    "thumbnail_image": "high_magna", 
+                    "tweet_name_alt": [], 
+                    "tweet_name_en": "Lvl 100 Tiamat Omega Ayr", 
+                    "tweet_name_jp": "Lv100 ティアマト・マグナ＝エア" 
+                } -->
+              
+                <!-- Position Column -->
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+                  <td mat-cell *matCellDef="let raid"> {{raid.quest_name_en}} </td>
+                </ng-container>
+              
+                <!-- Name Column -->
+                <ng-container matColumnDef="element">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Element </th>
+                  <td mat-cell *matCellDef="let raid">
+                    <img [alt]="raid.element+' '+raid.quest_name_en" [src]="'assets/icons/' + raid.element + '.png'"/>
+                  </td>
+                </ng-container>
+              
+                <!-- Weight Column -->
+                <ng-container matColumnDef="difficulty">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Difficulty </th>
+                  <td mat-cell *matCellDef="let raid"> {{raid.difficulty}} </td>
+                </ng-container>
+              
+                <!-- Symbol Column -->
+                <!-- <ng-container matColumnDef="level">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Req. Level </th>
+                  <td mat-cell *matCellDef="let raid"> {{raid.level}} </td>
+                </ng-container> -->
+              
+                <tr mat-header-row *matHeaderRowDef="tableViewHeaders"></tr>
+                <tr mat-row class="raid-table-row" [ngClass]="{ 'raid-table-row-selected': raid.selected }" (click)="toggleRaid(raid.quest_id)" *matRowDef="let raid; columns: tableViewHeaders;"></tr>
+            </table>
+        </div>
+      </ng-container>
     </mat-dialog>
 </ng-template>
 

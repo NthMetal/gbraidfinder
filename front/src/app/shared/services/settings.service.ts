@@ -43,6 +43,16 @@ export class SettingsService {
     
     questExtendedMenu: {} as { [key: string]: { visible: boolean }},
     questAutoCopySettings: {} as { [key: string]: { enabled: boolean }},
+
+    questSelectorDisplayType: 'image' as 'image' | 'table',
+    updatedInfoToDisplay: {
+      hp: true,
+      hpPercent: true,
+      players: true,
+      timeLeft: true,
+      class: true
+    }
+
   }
 
   public readonly maintinance = {

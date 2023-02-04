@@ -38,3 +38,30 @@
 .bottom-menu-buttons {
     min-width: 28px;
 }
+
+.clear-battlekey-input {
+    position: absolute;
+    left: -9999px;
+    font-size: 12pt; // Prevent zooming on iOS
+    // background: transparent;
+    // border: none;
+    // font-size: 1.15rem;
+    // padding: 0;
+    // width: 100%;
+    // color: white;
+}
+
+
+
+.raid-table-row {
+    cursor: pointer;
+}
+.raid-table-row-selected { // Selected Raids
+    background: #539382;
+}
+.raid-table-row-selected:hover { // Hover on Selected Raids
+    background: #4f8778;
+}
+.raid-table-row:not(.raid-table-row-selected):hover { // Hover on non-selected raids
+    background: #3e3d3d;
+}

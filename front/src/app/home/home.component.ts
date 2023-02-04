@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -11,15 +11,23 @@ import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs'
 import { NotificationService } from '../shared/services/notification.service';
 import { SettingsService } from '../shared/services/settings.service';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit {
 
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    this.sort = ms;
+    this.standardRaids.sort = this.sort;
+    this.impossibleRaids.sort = this.sort;
+  }
   @ViewChild('settingsForm') settingsForm: NgForm;
+  @ViewChild('battleKeyInput') battleKeyInput: ElementRef<HTMLTextAreaElement>;
 
   raid_metadata: any[] = [];
   subscribedRaids: any[] = [];
@@ -29,7 +37,7 @@ export class HomeComponent implements OnInit {
   formChangesSubscription: Subscription;
 
   lastStatusRecievedAt: Date;
-  status: { 
+  status: {
     raidStatus: {
       tweetStatus: {
         lastTweetRecievedAt?: Date,
@@ -43,12 +51,18 @@ export class HomeComponent implements OnInit {
   raidSearch = '';
   raidSearchSubject = new Subject<string>();
   raidSearchFiltered: { standard: { [key: string]: any[] }, impossible: { [key: string]: any[] } };
-  
+
   elements: string[] = ['fire', 'water', 'earth', 'wind', 'light', 'dark', 'normal']
   joinLevels: number[] = []
   groupedRaids: { standard: { [key: string]: any[] }, impossible: { [key: string]: any[] } };
   standardDifficulties: string[] = [];
   impossibleDifficulties: string[] = [];
+
+  sort: MatSort;
+  standardRaids: MatTableDataSource<any> = new MatTableDataSource([] as any[]);
+  impossibleRaids: MatTableDataSource<any> = new MatTableDataSource([] as any[]);
+
+  tableViewHeaders = ['name', 'element', 'difficulty'];
 
   tabActive = true;
   tabFocused = true;
@@ -97,14 +111,22 @@ export class HomeComponent implements OnInit {
     window.onblur = () => {
       this.tabFocused = false;
     }
-    
+
     /**
      * Subscribes to raid search subject
      * updates raidSearchFiltered variable with the new value
      */
     this.raidSearchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe(value => {
-      if (value === '') return this.raidSearchFiltered = this.groupedRaids;
       const filterValue = value.toLowerCase();
+
+      this.impossibleRaids.filter = filterValue;
+      this.standardRaids.filter = filterValue;
+
+      if (value === '') return this.raidSearchFiltered = this.groupedRaids;
+
+      this.impossibleRaids.filter = filterValue;
+      this.standardRaids.filter = filterValue;
+
       return this.raidSearchFiltered = {
         standard: this.standardDifficulties.reduce((acc, difficulty) => {
           acc[difficulty] = this.groupedRaids.standard[difficulty].filter(raid => Object.values(raid).join().toLowerCase().includes(filterValue));
@@ -126,6 +148,10 @@ export class HomeComponent implements OnInit {
       moves: (el, container, handle) => {
         return !!handle?.className.includes('dragula-handle');
       }
+    });
+    this.dragulaService.drop('DRAGABLE_COLUMNS').subscribe(drop => {
+      this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
+      this.settingsService.updateSettings();
     });
 
     /**
@@ -152,6 +178,9 @@ export class HomeComponent implements OnInit {
         acc[curr.impossible === 1 ? 'standard' : 'impossible'][curr.thumbnail_image].push(curr);
       }
       else acc[curr.impossible === 1 ? 'standard' : 'impossible'][curr.thumbnail_image] = [curr]
+
+      //also populate list of standard and impossible raids.
+      curr.impossible === 1 ? this.standardRaids.data.push(curr) : this.impossibleRaids.data.push(curr);
       return acc;
     }, { standard: {}, impossible: {} });
     this.raidSearchFiltered = this.groupedRaids;
@@ -179,6 +208,8 @@ export class HomeComponent implements OnInit {
         this.raidSearchFiltered.impossible[difficulty] = this.raidSearchFiltered.impossible[difficulty].map(raid => ({ ...raid, selected: subbed.has('r' + raid.quest_id) }));
         this.groupedRaids.impossible[difficulty] = this.groupedRaids.impossible[difficulty].map(raid => ({ ...raid, selected: subbed.has('r' + raid.quest_id) }));
       });
+      this.standardRaids.data = this.standardRaids.data.map(raid => ({ ...raid, selected: subbed.has('r' + raid.quest_id) }))
+      this.impossibleRaids.data = this.impossibleRaids.data.map(raid => ({ ...raid, selected: subbed.has('r' + raid.quest_id) }))
       // this.subscribedRaids = this.raid_metadata.filter(raidm => subbed.has('r' + raidm.quest_id));
     });
 
@@ -192,7 +223,7 @@ export class HomeComponent implements OnInit {
       const parsed = JSON.parse(status);
       this.status = parsed;
     });
-    
+
     /**
      * Subscribes to raid event from socket
      * This is a basic raid info. Battle key and twitter user info.
@@ -217,7 +248,7 @@ export class HomeComponent implements OnInit {
       if (settings.questAutoCopySettings[raid.quest_id]?.enabled && this.tabActive && this.tabFocused) {
         this.selectRaid(raid);
       }
-      
+
       /**
        * Remove the last raid on the list if the tab is inactive and there are
        * already more than 20 raids
@@ -225,7 +256,7 @@ export class HomeComponent implements OnInit {
        * also clears the set timeout for that raid.
        */
       if (
-        (!this.tabActive && this.raids[raid.quest_id].length > 20) || 
+        (!this.tabActive && this.raids[raid.quest_id].length > 20) ||
         this.raids[raid.quest_id].length > settings.removeRaidsAfterLimit
       ) {
         const removedRaid = this.raids[raid.quest_id].pop();
@@ -277,6 +308,25 @@ export class HomeComponent implements OnInit {
   ngOnDestroy() {
     if (this.formChangesSubscription) this.formChangesSubscription.unsubscribe();
     this.dragulaService.destroy('DRAGABLE_COLUMNS');
+  }
+
+  ngAfterViewInit(): void {
+    const defaultSortingDataAccessor = (item: any, property: string) => {
+      switch (property) {
+        case 'name': return item.quest_name_en;
+        default: return item[property];
+      }
+    };
+    this.impossibleRaids.sortingDataAccessor = defaultSortingDataAccessor;
+    this.standardRaids.sortingDataAccessor = defaultSortingDataAccessor;
+
+    const filterPredicate = (data: any, filterValue: string) => {
+      if (filterValue === '') return true;
+      return Object.values(data).join().toLowerCase().includes(filterValue);
+    }
+
+    this.impossibleRaids.filterPredicate = filterPredicate;
+    this.standardRaids.filterPredicate = filterPredicate;
   }
 
   /**
@@ -358,12 +408,11 @@ export class HomeComponent implements OnInit {
    * @param raid 
    */
   public async selectRaid(raid: any) {
-    raid.selected = true;
     if (raid.update && !this.settingsService.settings.copyOnly) {
       const tab = this.settingsService.settings.openInTab ? '_blank' : 'gbfTab';
       window.open(`https://game.granbluefantasy.jp/${raid.update.link}`, tab, tab === '_blank' ? 'noreferrer' : '');
     } else {
-      const result = await this.copyTextToClipboard(raid.battleKey);
+      const result = await this.copyTextToClipboard(raid.battleKey, this.battleKeyInput);
       if (result) {
         this.snackBar.open(`Copied ${raid.battleKey}!`, '', { duration: 2000 });
         if (this.settingsService.settings.openInTab) {
@@ -378,6 +427,7 @@ export class HomeComponent implements OnInit {
       //   this.snackBar.open(`Unable to copy battle key.`, '', { duration: 2000 });
       // });
     }
+    raid.selected = true;
   }
 
   /**
@@ -391,6 +441,7 @@ export class HomeComponent implements OnInit {
     const temp_b = this.subscribedRaids[raidIndex - 1];
     this.subscribedRaids[raidIndex - 1] = temp_a;
     this.subscribedRaids[raidIndex] = temp_b;
+    this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
     this.settingsService.updateSettings();
   }
 
@@ -405,6 +456,7 @@ export class HomeComponent implements OnInit {
     const temp_b = this.subscribedRaids[raidIndex + 1];
     this.subscribedRaids[raidIndex + 1] = temp_a;
     this.subscribedRaids[raidIndex] = temp_b;
+    this.settingsService.settings.subscribedRaidQuestIds = this.subscribedRaids.map(raid => raid.quest_id);
     this.settingsService.updateSettings();
   }
 
@@ -423,8 +475,8 @@ export class HomeComponent implements OnInit {
   public toggleQuestNotifications(raid: any) {
     const settings = this.settingsService.settings;
     settings.questNotificationSettings[raid.quest_id] ?
-    settings.questNotificationSettings[raid.quest_id].enabled = !settings.questNotificationSettings[raid.quest_id].enabled :
-    settings.questNotificationSettings[raid.quest_id] = { enabled: true, notificationOnUpdate: true}
+      settings.questNotificationSettings[raid.quest_id].enabled = !settings.questNotificationSettings[raid.quest_id].enabled :
+      settings.questNotificationSettings[raid.quest_id] = { enabled: true, notificationOnUpdate: true }
 
     if (settings.questNotificationSettings[raid.quest_id]?.enabled) this.notificationService.requestNotificationPermission();
 
@@ -471,9 +523,9 @@ export class HomeComponent implements OnInit {
    * Copies the latest raid that appeared in the column.
    * @param raid quest id of the raid
    */
-  public copyLatestRaid(raid: any) {
+  public copyLatestRaid(raid: any, raidCard: any) {
     if (this.raids[raid.quest_id] && this.raids[raid.quest_id].length) {
-      const found = this.settingsService.settings.copyOnly ? 
+      const found = this.settingsService.settings.copyOnly ?
         this.raids[raid.quest_id].find(item => !item.selected) :
         this.raids[raid.quest_id].find(item => !item.selected && item.update);
 
@@ -485,13 +537,45 @@ export class HomeComponent implements OnInit {
    * Copies text to clipboard
    * @param text text to copy to clipboard
    */
-  public copyTextToClipboard(text: string): Promise<boolean> {
-    return this.notificationService.copyTextToClipboard(text);
+  public async copyTextToClipboard(text: string, inputElement: any): Promise<boolean> {
+    // return this.notificationService.copyTextToClipboard(text, inputElement);
+    if (navigator && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const element = inputElement.nativeElement;
+    const previouslyFocusedElement: any = document.activeElement;
+    element.value = text;
+
+    const range = document.createRange();
+    range.selectNodeContents(inputElement);
+    
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    let isSuccess = false;
+    try {
+      isSuccess = document.execCommand('copy');
+    } catch { }
+
+    selection?.removeAllRanges();
+
+    // Get the focus back on the previously focused element, if any
+    if (previouslyFocusedElement) {
+      previouslyFocusedElement.focus();
+    }
+
+    return isSuccess;
   }
 
   public gotoStats() {
     this.router.navigate(['/stats']);
   }
 
+  public updateSettings() {
+    this.settingsService.updateSettings();
+  }
 
 }
