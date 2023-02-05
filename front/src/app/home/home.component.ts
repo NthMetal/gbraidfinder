@@ -552,19 +552,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const previouslyFocusedElement: any = document.activeElement;
     element.value = text;
 
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+
+    element.select();
 
     let isSuccess = false;
     try {
       isSuccess = document.execCommand('copy');
     } catch { }
-
-    selection?.removeAllRanges();
 
     // Get the focus back on the previously focused element, if any
     if (previouslyFocusedElement) {
