@@ -540,8 +540,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   public async copyTextToClipboard(text: string, inputElement: any): Promise<boolean> {
     // return this.notificationService.copyTextToClipboard(text, inputElement);
     if (navigator && navigator.clipboard) {
-      await navigator.clipboard.writeText(text);
-      return true;
+      const navigatorResult = await new Promise(resolve => {
+        navigator.clipboard.writeText(text)
+          .then(() => resolve(true))    // nav copy was successful, resolve with true which returns
+          .catch(() => resolve(false)); // nav copy failed, resolve with true which copys using element
+      });
+      if (navigatorResult) return true;
     }
 
     const element = inputElement.nativeElement;
