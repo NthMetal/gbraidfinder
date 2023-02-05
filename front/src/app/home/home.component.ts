@@ -548,7 +548,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           .then(() => resolve(true))    // nav copy was successful, resolve with true which returns
           .catch(() => resolve(false)); // nav copy failed, resolve with true which copys using element
       });
-      return navigatorResult;
+      if (navigatorResult) return true;
     }
 
     const element = inputElement.nativeElement;
