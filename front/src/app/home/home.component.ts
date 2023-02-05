@@ -541,9 +541,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     // return this.notificationService.copyTextToClipboard(text, inputElement);
     if (navigator && navigator.clipboard) {
       const navigatorResult = await new Promise<boolean>(resolve => {
-        setTimeout(() => {
-          return resolve(false); // resolve false in 1 second if navigator takes too long
-        }, 1000);
         navigator.clipboard.writeText(text)
           .then(() => resolve(true))    // nav copy was successful, resolve with true which returns
           .catch(() => resolve(false)); // nav copy failed, resolve with true which copys using element
@@ -556,7 +553,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     element.value = text;
 
     const range = document.createRange();
-    range.selectNodeContents(inputElement);
+    range.selectNodeContents(element);
     
     const selection = window.getSelection();
     selection?.removeAllRanges();
