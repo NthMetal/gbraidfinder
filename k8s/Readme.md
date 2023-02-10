@@ -70,9 +70,9 @@ kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.
 
 docker exec -it redpanda1 rpk topic create l20 l30 l40 l80 l101 l120 l130 l150 l151 l170 l200
 kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 topic create l20 l30 l40 l80 l101 l120 l130 l150 l151 l170 l200
-kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 topic create update member_events
-
-
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 topic create update unknown member_events
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 cluster config set delete_retention_ms 86400000
+kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk --brokers=redpanda-0.redpanda.redpanda.svc.cluster.local.:9093 group describe gbr | grep l101
 l20
 l30
 l40
@@ -86,3 +86,15 @@ l170
 l200
 
 kubectl port-forward -n mongodb "service/mongodb-service" 27018:27017
+
+
+kubectl create namespace gbraidfinderprime
+kubectl config set-context --current --namespace=gbraidfinderprime
+kubectl create namespace redpanda
+
+
+oidc_id=$(aws eks describe-cluster --name gbr-cluster-a --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
+aws iam list-open-id-connect-providers | grep $oidc_id | cut -d "/" -f4
+eksctl utils associate-iam-oidc-provider --cluster gbr-cluster-a --approve
+eksctl create iamserviceaccount --name gbr-service-account --namespace gbraidfinderprime --cluster gbr-cluster-a --attach-policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess --approve
+kubectl describe serviceaccount gbr-service-account
