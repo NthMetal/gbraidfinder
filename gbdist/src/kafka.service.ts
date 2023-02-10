@@ -1,5 +1,5 @@
 import { Injectable, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
-import { Consumer, Kafka } from 'kafkajs';
+import { Consumer, Kafka, Producer, RetryOptions } from 'kafkajs';
 import { Subject } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from './config.service';
@@ -8,9 +8,16 @@ import { ConfigService } from './config.service';
 export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   private readonly kafka: Kafka;
   private readonly consumer: Consumer;
+  private readonly producer: Producer;
+  private readonly retry: RetryOptions = {
+    retries: Number.MAX_SAFE_INTEGER
+  };
+
 
   public readonly raids: Subject<any> = new Subject();
   public readonly updates: Subject<any> = new Subject();
+
+  private connected: Boolean = false;
 
   constructor(
     private readonly configService: ConfigService
@@ -19,16 +26,27 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
         clientId: 'gbdist',
         brokers: this.configService.config.redpandaBrokers
     });
-
+    this.producer = this.kafka.producer({ allowAutoTopicCreation: true, retry: this.retry });
     this.consumer = this.kafka.consumer({ groupId: `gbdist-${uuidv4()}`, allowAutoTopicCreation: true });
+
+    this.producer.on('producer.disconnect', () => {
+      console.log('Producer Disonnected');
+      this.connected = false;
+    });
+    this.producer.on('producer.connect', () => {
+      console.log('Producer Connected');
+      this.connected = true;
+    });
   }
 
   async onApplicationShutdown(signal?: string) {
+    await this.producer.disconnect();
     await this.consumer.disconnect();
     console.log('gbdist disconnected');
   }
   
   async onModuleInit() {
+    await this.producer.connect();
     await this.consumer.connect();
 
     await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
@@ -58,6 +76,16 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
    */
    private isRaidTopic(topic: string): boolean {
     return topic[0] === 'l';
+  }
+
+  async sendRaid(raid: any) {
+    if (!this.connected) return;
+    await this.producer.send({
+      topic: 'unknown',
+      messages: [
+        { value: JSON.stringify(raid) }
+      ],
+    });
   }
 
 }

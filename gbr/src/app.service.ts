@@ -233,10 +233,12 @@ export class AppService {
           const result = raidPID_result?.popup?.body ?
             raidPID_result.popup.body === 'This raid battle has already ended.' ? 'ended' :
               raidPID_result.popup.body === 'This raid battle is full. You can\'t participate.' ? 'full' :
-                'unknown' : 'unknown';
+                raidPID_result.popup.body === 'You couldn\'t join this raid battle.' ? 'level' :
+                  'unknown' : 'unknown';
+          
           return {
-            resultStatus: result + '-' + raidPID_fetch.status,
-            link: '',
+            resultStatus: result,
+            link: result === 'level' ? raidPID_result.popup.body : '',
             hp: '',
             players: '',
             timeLeft: '',

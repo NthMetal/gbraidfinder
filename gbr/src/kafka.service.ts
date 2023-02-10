@@ -179,6 +179,8 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     await this.checkPartitionsGetTopics();
 
     await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
+    await this.consumer.subscribe({ fromBeginning: false, topic: 'unknown' });
+
     return await this.consumer.run({
       autoCommit: true,
       eachMessage: async payload => {
@@ -205,6 +207,33 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
             // console.log(JSON.stringify(update));
             this.sendUpdate(update.data);
           }
+        }
+        if (payload.topic === 'unknown') {
+          const messageString = payload.message.value?.toString();
+          const raid = JSON.parse(messageString || '{}'); // everything comes as a buffer
+          // {
+          //   locale: 'EN',
+          //   message: '',
+          //   battleKey: BattleKey,
+          //   quest_id: 'unknown'
+          // }
+          const update = await this.appService.getRaidInfo(raid.battleKey);
+          if (update.status === 'success') {
+            if (update.status === 'success' &&  update.data.resultStatus === 'level') {
+              // spit out another raid if it wasn't successful
+              const level = update.data.link.match(/Rank(.{3})/);
+              this.sendRaid({
+                locale: 'EN',
+                message: '',
+                battleKey: raid.battleKey,
+                quest_id: 'unknown'
+              }, level[1]);
+            } else {
+              // spit out an update if it was successful
+              this.sendUpdate(update.data);
+            }
+          }
+          
         }
       },
     });
@@ -273,10 +302,21 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
    * @param update update to send
    */
   async sendUpdate(update: any) {
+    if (!this.connected) return;
     await this.producer.send({
       topic: `update`,
       messages: [
         { value: JSON.stringify(update) }
+      ],
+    });
+  }
+
+  async sendRaid(raid: any, level: number | string) {
+    if (!this.connected) return;
+    await this.producer.send({
+      topic: `l${level}`,
+      messages: [
+        { value: JSON.stringify(raid) }
       ],
     });
   }

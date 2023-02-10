@@ -95,7 +95,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     });
   }
 
-  async sendRaid(raid: any, level: number) {
+  async sendRaid(raid: any, level: number | string) {
     if (!this.producerConnected) return;
     await this.producer.send({
       topic: `l${level}`,
