@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import puppeteer from 'puppeteer';
-import { mergeMap, Subject } from 'rxjs';
 
 @Injectable()
 export class AppService {
@@ -11,9 +10,6 @@ export class AppService {
   private loggedIn = false;
   private browser: puppeteer.Browser;
   private page: puppeteer.Page;
-  
-  public raidSubject = new Subject<any>();
-  public updateSubject = new Subject<any>();
 
   constructor() {
     this.account = {
@@ -24,27 +20,6 @@ export class AppService {
     console.log('Initialized Account', this.account);
     this.initializeBrowser().then(result => {
       if (result === 'success') this.loginToGBF();
-    });
-  //   this.queueSubjectSubscription = this.queueSubject.pipe(mergeMap(async battleKey => {
-  //     const updateResult: any = await this.getRaidInfo(battleKey);
-  //     this.lastUpdateProcessedAt = new Date();
-  //     if (updateResult.status === 'success') {
-  //         const update = updateResult.data;
-  //         this.updatesSubject.next(update);
-  //     }
-  //     // wait 2 seconds before removing it from the queue
-  //     // so if another request comes within that time it'll go to another account
-  //     await new Promise((resolve) => setTimeout(resolve, 2000));
-  //     return battleKey;
-  // }, 10)).subscribe(battleKey => {
-  //     this.queueLength--;
-  // });
-    this.raidSubject.pipe(mergeMap(async raid => {
-      return await this.getRaidInfo(raid.battleKey);
-    }, 2)).subscribe(update => {
-      if (update.status === 'success' && update.data && update.data.resultStatus === 'success') {
-        this.updateSubject.next(update);
-      }
     });
   }
 
@@ -176,7 +151,7 @@ export class AppService {
    * @param battleKey 8 Character battle key
    * @returns 
    */
-  private async getRaidInfo(battleKey: string) {
+  public async getRaidInfo(battleKey: string) {
     if (!this.account) return { status: 'no account'};
     if (!this.initializedBrowser) return { status: 'browser not initialized' };
     if (this.loggedIn || this.page.url() === 'https://game.granbluefantasy.jp/#profile') {
