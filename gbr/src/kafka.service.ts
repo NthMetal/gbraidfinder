@@ -79,7 +79,8 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               l151: 31999,
               l200: 24856,
               l101: 58710,
-              l40: 2384
+              l40: 2384,
+              unknown: 0
             }
             // assignment[assignee]  {
             //   l200: [
@@ -105,14 +106,21 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               // return Object.values(assignment[assignee]).flat().length
             }
             sortedTopicsPartitions.forEach((topicPartition, i) => {
-              const topicRank = +topicPartition.topic.slice(1);
-              const validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
-
-              const assignee = validAssignees.reduce((prev, curr) => {
-                const prevTotal = getAssigneeHeuristic(prev);
-                const currTotal = getAssigneeHeuristic(curr);
-                return prevTotal < currTotal ? prev : curr
-              });
+              let validAssignees = [];
+              let assignee;
+              if (topicPartition.topic === 'unknown') {
+                validAssignees = sortedMembers;
+                assignee = validAssignees[i % validAssignees.length]
+              } else {
+                const topicRank = +topicPartition.topic.slice(1);
+                validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
+                assignee = validAssignees.reduce((prev, curr) => {
+                  const prevTotal = getAssigneeHeuristic(prev);
+                  const currTotal = getAssigneeHeuristic(curr);
+                  return prevTotal < currTotal ? prev : curr
+                });
+              }
+              
               // console.log(topicPartition, assignment, assignee);
               // const assignee = validAssignees[i % validAssignees.length]
               
