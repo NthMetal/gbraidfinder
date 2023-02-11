@@ -16,6 +16,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
   };
 
   private connected: Boolean = false;
+  private standardRoundRobinTopics = ['unknown'];
 
   constructor(
     private readonly appService: AppService,
@@ -43,14 +44,18 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
            * and assigning each topic partition to the valid member that has the least currently assigned partitions
            */
           const assign: (group: { members: GroupMember[]; topics: string[] }) => Promise<GroupMemberAssignment[]> = async (group) => {
-            const membersCount = group.members.length
             const sortedMembers = group.members.map(({ memberId }) => memberId).sort()
             const assignment: { [member: string]: { [topic: string]: number[] }} = {}
-
-            const topicsPartitions = group.topics.flatMap(topic => {
+            
+            const filteredTopics = group.topics.filter(topic => !this.standardRoundRobinTopics.includes(topic));
+            const topicsPartitions = filteredTopics.flatMap(topic => {
               const partitionMetadata = config.cluster.findTopicPartitionMetadata(topic)
               return partitionMetadata.map(m => ({ topic: topic, partitionId: m.partitionId }))
-            })
+            });
+            const standardRRPartitions = this.standardRoundRobinTopics.flatMap(topic => {
+              const partitionMetadata = config.cluster.findTopicPartitionMetadata(topic)
+              return partitionMetadata.map(m => ({ topic: topic, partitionId: m.partitionId }))
+            });
             const sortedTopicsPartitions = topicsPartitions.sort((topicA, topicB) => {
               const topicARank = +topicA.topic.slice(1);
               const topicBRank = +topicB.topic.slice(1);
@@ -67,7 +72,6 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               acc[curr.topic] = curr.partitions[0].offset
               return acc;
             }, {});
-            console.log(offsetWeights);
             const tempOffsetWeights = {
               l80: 2990,
               l30: 319,
@@ -79,8 +83,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
               l151: 31999,
               l200: 24856,
               l101: 58710,
-              l40: 2384,
-              unknown: 0
+              l40: 2384
             }
             // assignment[assignee]  {
             //   l200: [
@@ -103,31 +106,31 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
                 acc += weight * curr[1].length
                 return acc;
               }, 0);
-              // return Object.values(assignment[assignee]).flat().length
             }
+
+            // Since level assignment is special, it's done first
             sortedTopicsPartitions.forEach((topicPartition, i) => {
-              let validAssignees = [];
-              let assignee;
-              if (topicPartition.topic === 'unknown') {
-                validAssignees = sortedMembers;
-                assignee = validAssignees[i % validAssignees.length]
-              } else {
-                const topicRank = +topicPartition.topic.slice(1);
-                validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
-                assignee = validAssignees.reduce((prev, curr) => {
-                  const prevTotal = getAssigneeHeuristic(prev);
-                  const currTotal = getAssigneeHeuristic(curr);
-                  return prevTotal < currTotal ? prev : curr
-                });
-              }
-              
-              // console.log(topicPartition, assignment, assignee);
-              // const assignee = validAssignees[i % validAssignees.length]
+              const topicRank = +topicPartition.topic.slice(1);
+              const validAssignees = sortedMembers.filter(member => topicRank <= +member.split('-')[1]);
+
+              const assignee = validAssignees.reduce((prev, curr) => {
+                const prevTotal = getAssigneeHeuristic(prev);
+                const currTotal = getAssigneeHeuristic(curr);
+                return prevTotal < currTotal ? prev : curr
+              });
               
               if (!assignment[assignee]) assignment[assignee] = {}
               if (!assignment[assignee][topicPartition.topic]) assignment[assignee][topicPartition.topic] = []
               assignment[assignee][topicPartition.topic].push(topicPartition.partitionId)
             })
+
+            // Use Standard Round Robin assignment for specific topics after level topic assignment is done
+            standardRRPartitions.forEach((topicPartition, i) => {
+              const assignee = sortedMembers[i % sortedMembers.length]
+              if (!assignment[assignee]) assignment[assignee] = {}
+              if (!assignment[assignee][topicPartition.topic]) assignment[assignee][topicPartition.topic] = []
+              assignment[assignee][topicPartition.topic].push(topicPartition.partitionId)
+            });
         
             const roundRobin = Object.keys(assignment).map(memberId => ({
               memberId,
@@ -263,7 +266,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
     const groupDescription = await this.admin.describeGroups(['gbr']);
     const numConnectedClients = groupDescription.groups[0].members.length;
     const topics = await this.admin.listTopics();
-    const levelTopics = topics.filter(topic => this.isRaidTopic(topic));
+    const levelTopics = topics.filter(topic => this.isRaidTopic(topic) || this.isExtraTopic(topic));
     if (!levelTopics.length) return [];
     const topicMetadata = await this.admin.fetchTopicMetadata({ topics: [levelTopics[0]] });
     const partitionsPerTopic = topicMetadata.topics[0].partitions.length;
@@ -303,6 +306,10 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
    */
   private isRaidTopic(topic: string): boolean {
     return topic[0] === 'l';
+  }
+
+  private isExtraTopic(topic: string): boolean {
+    return this.standardRoundRobinTopics.includes(topic);
   }
 
   /**
