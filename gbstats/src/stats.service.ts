@@ -183,7 +183,7 @@ export class StatsService implements OnModuleInit {
             console.log('logging....', this.allSegmentStats);
             
             const intervalTime = this.roundToNearest(new Date());
-            const raidQuestIdsAndAll = [...this.configService.config.raidmetadata, { quest_id: 'all' }]
+            const raidQuestIdsAndAll = [...this.configService.config.raidmetadata, {quest_id: 'unknown'}, { quest_id: 'all' }]
             const records = raidQuestIdsAndAll.reduce((acc, raid) => {
                 let statsAccessor = raid.quest_id === 'all' ? this.allSegmentStats : this.currentSegmentStats[raid.quest_id];
                 if (!statsAccessor) return acc;

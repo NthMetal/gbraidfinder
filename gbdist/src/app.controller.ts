@@ -40,7 +40,18 @@ export class AppController {
       battleKey: battleKey,
       quest_id: 'unknown'
     });
-    return { info: 'sent' }
+    return await new Promise(resolve => {
+      const subscription = this.kafkaService.update_errors.subscribe(update_error => {
+        if (update_error.battleKey === battleKey) {
+          subscription.unsubscribe();
+          resolve({ info: update_error.resultStatus })
+        }
+      });
+      setTimeout(() => { 
+        if (subscription) subscription.unsubscribe();
+        resolve({ info: 'sent'});
+      }, 1500);
+    });
   }
 
 }

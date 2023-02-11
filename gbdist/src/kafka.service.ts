@@ -16,6 +16,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
 
   public readonly raids: Subject<any> = new Subject();
   public readonly updates: Subject<any> = new Subject();
+  public readonly update_errors: Subject<any> = new Subject();
 
   private connected: Boolean = false;
 
@@ -51,6 +52,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
 
     await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
     await this.consumer.subscribe({ fromBeginning: false, topic: 'update' });
+    await this.consumer.subscribe({ fromBeginning: false, topic: 'update_error' });
     this.consumer.run({
       autoCommit: true,
       eachMessage: async (payload) => {
@@ -62,6 +64,10 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
         if (payload.topic === 'update') {
           const update = JSON.parse(messageString || '{}');
           this.updates.next(update);
+        }
+        if (payload.topic === 'update_error') {
+          const update_error = JSON.parse(messageString || '{}');
+          this.update_errors.next(update_error);
         }
       },
     });

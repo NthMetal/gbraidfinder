@@ -33,6 +33,7 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
 
     await this.consumer.subscribe({ fromBeginning: false, topic: /l.*/ });
     await this.consumer.subscribe({ fromBeginning: false, topic: 'update' });
+    await this.consumer.subscribe({ fromBeginning: false, topic: 'unknown' });
     this.consumer.run({
       autoCommit: true,
       eachMessage: async (payload) => {
@@ -49,6 +50,13 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           this.updates.next({
             timestamp: payload.message.timestamp,
             update
+          });
+        }
+        if (payload.topic === 'unknown') {
+          const raid = JSON.parse(messageString || '{}');
+          if (raid.quest_id !== 'unknown2') this.raids.next({
+            timestamp: payload.message.timestamp,
+            raid
           });
         }
       },

@@ -230,18 +230,21 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
           // }
           const update = await this.appService.getRaidInfo(raid.battleKey);
           if (update.status === 'success') {
-            if (update.status === 'success' &&  update.data.resultStatus === 'level') {
+            if (update.data.resultStatus === 'level') {
               // spit out another raid if it wasn't successful
               const level = update.data.link.match(/Rank(.{3})/);
               this.sendRaid({
                 locale: 'EN',
                 message: '',
                 battleKey: raid.battleKey,
-                quest_id: 'unknown'
+                quest_id: 'unknown2'
               }, level[1]);
             } else {
               // spit out an update if it was successful
-              this.sendUpdate(update.data);
+              if (update.data.resultStatus !== 'success') {
+                this.sendUpdateError(update.data)
+              }
+              else this.sendUpdate(update.data);
             }
           }
           
@@ -332,6 +335,16 @@ export class KafkaService implements OnModuleInit, OnApplicationShutdown {
       topic: `l${level}`,
       messages: [
         { value: JSON.stringify(raid) }
+      ],
+    });
+  }
+
+  async sendUpdateError(update: any) {
+    if (!this.connected) return;
+    await this.producer.send({
+      topic: 'update_error',
+      messages: [
+        { value: JSON.stringify(update) }
       ],
     });
   }
