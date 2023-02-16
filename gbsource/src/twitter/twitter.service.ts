@@ -12,6 +12,7 @@ export class TwitterService implements OnModuleInit {
     // private token = twittertokens[0];
     
     private twitter: Twitter = undefined;
+    private twitters: Twitter[] = [];
 
     private tweets: Subject<Tweet> = new Subject();
     private tweetSources: Subject<any> = new Subject();
@@ -58,14 +59,24 @@ export class TwitterService implements OnModuleInit {
          * Create twitter object
          * so that when 2m tweets/month is hit it can use a different object
          */
-        // this.twitter = new Twitter(this.tokens[0], tweet => {
-        //     if (tweet.data.source === 'グランブルー ファンタジー') {
-        //         // console.log(JSON.stringify(tweet));
-        //         this.tweets.next(tweet);
-        //         // this.raidCounter ++;
-        //         this.tweetStatus.lastTweetRecievedAt = new Date();
+        // this.twitters = this.tokens.map(token => {
+        //     return new Twitter(token, tweet => {
+        //         if (tweet.data.source === 'グランブルー ファンタジー') {
+        //             // console.log(JSON.stringify(tweet));
+        //             this.tweets.next(tweet);
+        //             // this.raidCounter ++;
+        //             this.tweetStatus.lastTweetRecievedAt = new Date();
+        //         }
+        //     },
+        //     () => {
+        //         if (this.twitters.length > 1) {
+        //             this.twitters.shift();
+        //             this.twitter = this.twitters[0];
+        //         }
         //     }
+        //     );
         // });
+        // if (this.twitters.length) this.twitter = this.twitters[0];
 
         // setInterval(() => {
         //     this.timeElapsed+=10;

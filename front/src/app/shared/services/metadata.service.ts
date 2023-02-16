@@ -26,4 +26,13 @@ export class MetadataService extends ApiService {
       });
     });
   }
+
+  public postRaid(battleKey: string) {
+    return new Promise<any>(resolve => {
+      this.post(`/r/${battleKey}`).subscribe(data => {
+        resolve(data);
+      });
+    });
+  }
+
 }

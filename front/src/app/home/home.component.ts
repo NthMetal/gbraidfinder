@@ -67,6 +67,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
   tabActive = true;
   tabFocused = true;
 
+  manualRaidInputValue = '';
+  manualRaidStatus = 'waiting';
+  manualRaidStatusMap = {
+    'sent': 'Raid Sent!*',
+    'level': 'Error: Raid Level Requirement Too High!',
+    'ended': 'Error: Raid Already Ended!',
+    'full': 'Error: Raid Full!',
+    'evaluationError': 'Error: Issue Evaluating Battle Key.',
+    'dataerror': 'Error: Issue Retrieving Raid Data.',
+    'unknown': 'Error: Unknown Issue.',
+    'pending': '',
+    'waiting': ''
+  }
+
   public readonly bitcoinAddressToDisplay = 'bc1qcrpyd6z5q7z3735y26psl2auc6jr97kjnurxsg';
 
   constructor(
@@ -273,12 +287,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
      * Subscribes to update events from socket
      * These include info such as hp, players, time left, host class
      * Finds the raid and adds the updated info to it
-     * does nothing if raid or quest DNE
+     * if DNE, then adds a new card for it
      * Removes the raid if it hp/player filters are failed
      */
     this.socketioService.getUpdates().subscribe(update => {
-      const raidIndex = this.raids[update.questID]?.findIndex(raid => raid.battleKey === update.battleKey);
-      if (!this.raids[update.questID] || raidIndex === -1) return;
+      console.log(update);
+      let raidIndex = this.raids[update.questID]?.findIndex(raid => raid.battleKey === update.battleKey);
+      if (!this.raids[update.questID] || raidIndex === -1) {
+        // add the raid when it wasn't found
+        console.log(update);
+        const fakeRaid = {
+          twitterUser: { name: "none", imgUrl: "a", username: "none", verified: false },
+          created_at: new Date(),
+          message: '',
+          battleKey: update.battleKey,
+          quest_id: update.questID,
+        }
+        if (this.raids[fakeRaid.quest_id]) {
+          this.raids[fakeRaid.quest_id].unshift(fakeRaid);
+        }
+        else this.raids[fakeRaid.quest_id] = [fakeRaid];
+        raidIndex = 0;
+      };
       const raid = this.raids[update.questID][raidIndex];
       raid.update = update;
       const players = +update.players?.split('/')[0];
@@ -574,6 +604,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   public updateSettings() {
     this.settingsService.updateSettings();
+  }
+
+  public postWriteInRaid(value: any) {
+    this.manualRaidStatus = 'pending';
+    this.metadataService.postRaid(value).then(result => {
+      const resultMessage = this.manualRaidStatusMap[result.info];
+      this.snackBar.open(resultMessage, '', { duration: 2000 }).afterOpened().subscribe(() => {
+        this.manualRaidStatus = 'waiting';
+        this.manualRaidInputValue = '';
+      });
+    });
+    
   }
 
 }

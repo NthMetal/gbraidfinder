@@ -2,7 +2,7 @@
 <div class="row flex-column flex-nowrap h-100">
     <!-- Top Navigation Header -->
     <div class="col-auto bg-0 py-2 w-100" style="position: fixed">
-        <div class="row">
+        <div class="row flex-nowrap">
             <div class="col-auto">
                 <button aria-label="Add Raid" mat-mini-fab color="primary" (click)="openDialog(raidDialog)">
                     <mat-icon>add</mat-icon>
@@ -20,6 +20,17 @@
           background: rgb(227 7 7 / 80%);
           box-shadow: rgb(227 7 7 / 50%) 0px 0px 10px 2px inset, rgb(227 7 7 / 80%) 0px 0px 10px 2px;"></div>
             </div>
+            <form #raidInputForm=ngForm (ngSubmit)="postWriteInRaid(manualRaidInputValue)" style="display: contents;">
+                <div class="col-auto d-flex align-items-center g-0 ms-3">
+                    <input matInput type="text" class="manual-input-input" [(ngModel)]="manualRaidInputValue" maxlength="8" autocomplete="off" name="manualInput">
+                </div>
+                <div class="col-auto d-flex align-items-center g-0">
+                    <button mat-icon-button aria-label="Add Manual Raid" *ngIf="manualRaidInputValue && manualRaidStatus==='waiting'" style="font-size: 8px" type="submit">
+                        <mat-icon>send</mat-icon>
+                    </button>
+                    <mat-spinner *ngIf="manualRaidStatus==='pending'" diameter="25"></mat-spinner>
+                </div>
+            </form>
             <!-- <div class="col-auto">
           <button mat-mini-fab color="primary">
             <mat-icon>insights</mat-icon>
@@ -206,10 +217,15 @@
         <div title>Info</div>
         <mat-card class="bg-2 mt-2"> For any questions or concerns you can contact me directly on discord: NthMetal#5000
         </mat-card>
-        <mat-card class="bg-2 my-3 d-flex align-items-center">
+        <mat-card class="bg-2 my-3 align-items-center">
+            <div class="row mb-1"><div class="col"><b>About Manual Input:</b></div></div>
+            <div class="row mb-1"><div class="col">You can now manually input your raid id, this will retrieve info about the raid and show it to anyone using the raid finder.</div></div>
+            <div class="row mb-1"><div class="col">There's a chance of the battle key not working, even if it says it has been sent.</div></div>
+        </mat-card>
+        <!-- <mat-card class="bg-2 my-3 d-flex align-items-center">
             <mat-icon class="me-3 material-icons-outlined"> {{settingsService.maintinance.icon }} </mat-icon>
             {{ settingsService.maintinance.message }}
-        </mat-card>
+        </mat-card> -->
         <mat-card class="bg-2 my-3 d-flex align-items-center">
             <a aria-label="Link to Github Issues Page" href="https://github.com/NthMetal/gbraidfinder" target="_blank">
                 <button aria-label="Report Bugs Button" style="position: relative" mat-icon-button color="primary" matTooltip="Report Bugs Here!">
@@ -543,4 +559,14 @@
         <div class="ms-3 mt-1 font-0" style="font-size: 0.75rem">Only raids with {{settingsService.settings.minPlayers}}
             to {{settingsService.settings.maxPlayers}} players will be shown.</div>
     </form>
+</ng-template>
+
+<ng-template #testInputDialog>
+    <mat-form-field class="example-form-field">
+        <mat-label>Clearable input</mat-label>
+        <input matInput type="text" #matInputValue>
+        <button matSuffix mat-icon-button aria-label="Clear" (click)="postWriteInRaid(matInputValue.value)">
+          <mat-icon>search</mat-icon>
+        </button>
+      </mat-form-field>
 </ng-template>
