@@ -1,3 +1,5 @@
+# DUE TO CHANGES WITH THE TWITTER API THIS RAIDFINDER IS NO LONGER FUNCTIONAL
+
 https://gbraidfinder.ogres.cc/home
 
 # GBRaidfinder
